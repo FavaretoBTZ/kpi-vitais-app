@@ -17,7 +17,11 @@ if uploaded_file is not None:
 
     # --- Prepara colunas auxiliares ---
     df['SessionDate - Info_str'] = df['SessionDate - Info'].astype(str)
-    df['SessionLapDate'] = df['SessionName - Info'] + ' | Lap ' + df['Lap - Info'].astype(str) + ' | ' + df['SessionDate - Info_str']
+    ddf['SessionDate - Info'] = pd.to_datetime(df['SessionDate - Info'], errors='coerce')
+    df['SessionDate - Info_str'] = df['SessionDate - Info'].dt.strftime('%d/%m/%Y')
+    df['Lap - Info'] = df['Lap - Info'].astype(str)  # garantir string
+
+    df['SessionLapDate'] = df['SessionName - Info'].astype(str) + ' | Lap ' + df['Lap - Info'] + ' | ' + df['SessionDate - Info_str']
 
     # --- Sidebar para seleção ---
     st.sidebar.header("Filtros")
