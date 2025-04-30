@@ -17,7 +17,7 @@ if uploaded_file is not None:
 
     # --- Prepara colunas auxiliares ---
     df['SessionDate - Info_str'] = df['SessionDate - Info'].astype(str)
-    ddf['SessionDate - Info'] = pd.to_datetime(df['SessionDate - Info'], errors='coerce')
+    df['SessionDate - Info'] = pd.to_datetime(df['SessionDate - Info'], errors='coerce')
     df['SessionDate - Info_str'] = df['SessionDate - Info'].dt.strftime('%d/%m/%Y')
     df['Lap - Info'] = df['Lap - Info'].astype(str)  # garantir string
 
