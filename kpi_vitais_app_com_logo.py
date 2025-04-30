@@ -7,6 +7,7 @@ from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.pyplot as plt
 
 st.set_page_config(layout="wide")
+st.image("btz_logo.png", width=200)
 st.title("KPI VITAIS - Análise Dinâmica")
 
 # --- Carregar o arquivo Excel ---
@@ -87,4 +88,5 @@ if uploaded_file is not None:
             )
 else:
     st.info("Envie o arquivo para iniciar a análise.")
+
 
