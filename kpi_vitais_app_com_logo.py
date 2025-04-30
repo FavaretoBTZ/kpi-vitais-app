@@ -17,11 +17,7 @@ if uploaded_file is not None:
 
     # --- Prepara colunas auxiliares ---
     df['SessionDate - Info_str'] = df['SessionDate - Info'].astype(str)
-    df['SessionDate - Info'] = pd.to_datetime(df['SessionDate - Info'], errors='coerce')
-    df['SessionDate - Info_str'] = df['SessionDate - Info'].dt.strftime('%d/%m/%Y')
-    df['Lap - Info'] = df['Lap - Info'].astype(str)  # garantir string
-
-    df['SessionLapDate'] = df['SessionName - Info'].astype(str) + ' | Lap ' + df['Lap - Info'] + ' | ' + df['SessionDate - Info_str']
+    df['SessionLapDate'] = df['SessionName - Info'] + ' | Lap ' + df['Lap - Info'].astype(str) + ' | ' + df['SessionDate - Info_str']
 
     # --- Sidebar para seleção ---
     st.sidebar.header("Filtros")
@@ -46,25 +42,15 @@ if uploaded_file is not None:
         title=f"{y_axis} por Session/Lap/Date"
     )
 
-# Adicionar linha de tendência ao gráfico
-import numpy as np
-try:
-    x_numeric = np.arange(len(filtered_df))
-    y_values = filtered_df[y_axis].astype(float).values  # garantir numérico
-    coef = np.polyfit(x_numeric, y_values, deg=1)
-    trend = np.poly1d(coef)(x_numeric)
-
-    fig.add_scatter(
-        x=filtered_df["SessionLapDate"],
-        y=trend,
-        mode='lines',
-        name='Tendência',
-        line=dict(color='red', width=4, dash='solid'),  # destacada
-        opacity=1.0,
-        showlegend=True
+    fig.update_layout(
+        xaxis_tickangle=90,
+        xaxis_title="Session | Lap | Date",
+        yaxis_title=y_axis,
+        legend_title="Data",
+        height=700
     )
-except Exception as e:
-    st.warning(f"Não foi possível adicionar linha de tendência: {e}")
+
+    st.plotly_chart(fig, use_container_width=True)
 
     # --- Exportar PDF ---
     st.sidebar.subheader("Exportar Gráficos em PDF")
