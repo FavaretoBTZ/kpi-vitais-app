@@ -8,7 +8,7 @@ from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.pyplot as plt
 
 # CONFIGURAÇÃO DO CAMINHO FIXO DO ARQUIVO EXCEL LOCAL
-CAMINHO_ARQUIVO = "C:\\Users\\vitor\\OneDrive\\Área de Trabalho\\MotorSport\\BTZ\\KPI WINTAX\\DataBase\\KPI VITAIS - 25ET1.xlsx"
+CAMINHO_ARQUIVO = r"C:\Users\vitor\OneDrive\Área de Trabalho\MotorSport\BTZ\KPI WINTAX\DataBase\KPI VITAIS - 25ET1.xlsx"
 
 st.set_page_config(layout="wide")
 st.image("btz_logo.png", width=200)
