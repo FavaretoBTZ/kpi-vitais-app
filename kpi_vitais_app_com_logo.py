@@ -55,7 +55,7 @@ try:
         y=trend,
         mode='lines',
         name='Tendência',
-        line=dict(dash='dash', color='black')
+        line=dict(dash='dash', color='white')
     )
 except Exception as e:
     st.warning(f"Não foi possível adicionar linha de tendência: {e}")
