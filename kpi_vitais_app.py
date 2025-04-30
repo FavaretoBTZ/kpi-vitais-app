@@ -1,1 +1,1 @@
-deletar kpi_vitais_app.py
+deletar versão antiga do app
