@@ -33,12 +33,12 @@ if uploaded_file is not None:
         filtered_df,
         x="SessionLapDate",
         y=y_axis,
-        color="SessionDate - Info",
+        color="TrackName - Info",
         markers=True,
         labels={
             "SessionLapDate": "Session | Lap | Date",
             y_axis: y_axis,
-            "SessionDate - Info": "Data da Sessão"
+            "TrackName - Info": "Etapa"
         },
         title=f"{y_axis} por Session/Lap/Date"
     )
