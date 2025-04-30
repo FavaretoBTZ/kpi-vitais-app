@@ -4,7 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import itertools
 
-CAMINHO_ARQUIVO = r"C:/Users/vitor/OneDrive/Área de Trabalho/MotorSport/BTZ/KPI WINTAX/DataBase/KPI VITAIS - 25ET1.xlsx"
+CAMINHO_ARQUIVO = r"C://Users//vitor//OneDrive//Área de Trabalho//MotorSport//BTZ//KPI WINTAX//DataBase//KPI VITAIS - 25ET1.xlsx"
 
 st.set_page_config(layout="wide")
 st.image("btz_logo.png", width=200)
