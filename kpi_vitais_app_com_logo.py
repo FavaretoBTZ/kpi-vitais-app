@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -29,36 +28,37 @@ if uploaded_file is not None:
     filtered_df = filtered_df.sort_values(by=['SessionDate - Info', 'SessionName - Info', 'Lap - Info'])
 
     # --- Gráfico Dinâmico ---
-   fig = px.line(
-    filtered_df,
-    x="SessionLapDate",
-    y=y_axis,
-    color="TrackName - Info",
-    markers=True,
-    labels={
-        "SessionLapDate": "Session | Lap | Date",
-        y_axis: y_axis,
-        "TrackName - Info": "Etapa"
-    },
-    title=f"{y_axis} por Session/Lap/Date"
-)
-
-# Adicionar linha de tendência se possível
-try:
-    x_numeric = np.arange(len(filtered_df))
-    y_values = filtered_df[y_axis].values
-    coef = np.polyfit(x_numeric, y_values, deg=1)
-    trend = np.poly1d(coef)(x_numeric)
-
-    fig.add_scatter(
-        x=filtered_df["SessionLapDate"],
-        y=trend,
-        mode='lines',
-        name='Tendência',
-        line=dict(dash='dash', color='white')
+    fig = px.line(
+        filtered_df,
+        x="SessionLapDate",
+        y=y_axis,
+        color="TrackName - Info",
+        markers=True,
+        labels={
+            "SessionLapDate": "Session | Lap | Date",
+            y_axis: y_axis,
+            "TrackName - Info": "Etapa"
+        },
+        title=f"{y_axis} por Session/Lap/Date"
     )
-except Exception as e:
-    st.warning(f"Não foi possível adicionar linha de tendência: {e}")
+
+    # Adicionar linha de tendência ao gráfico
+    import numpy as np
+    try:
+        x_numeric = np.arange(len(filtered_df))
+        y_values = filtered_df[y_axis].values
+        coef = np.polyfit(x_numeric, y_values, deg=1)
+        trend = np.poly1d(coef)(x_numeric)
+
+        fig.add_scatter(
+            x=filtered_df["SessionLapDate"],
+            y=trend,
+            mode='lines',
+            name='Tendência',
+            line=dict(dash='dash', color='black')
+        )
+    except Exception as e:
+        st.warning(f"Não foi possível adicionar linha de tendência: {e}")
 
     fig.update_layout(
         xaxis_tickangle=90,
