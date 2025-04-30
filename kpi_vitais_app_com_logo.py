@@ -46,33 +46,25 @@ if uploaded_file is not None:
         title=f"{y_axis} por Session/Lap/Date"
     )
 
-    # Adicionar linha de tendência ao gráfico
-    import numpy as np
-    try:
-        x_numeric = np.arange(len(filtered_df))
-        y_values = filtered_df[y_axis].values
-        coef = np.polyfit(x_numeric, y_values, deg=1)
-        trend = np.poly1d(coef)(x_numeric)
+# Adicionar linha de tendência ao gráfico
+import numpy as np
+try:
+    x_numeric = np.arange(len(filtered_df))
+    y_values = filtered_df[y_axis].astype(float).values  # garantir numérico
+    coef = np.polyfit(x_numeric, y_values, deg=1)
+    trend = np.poly1d(coef)(x_numeric)
 
-        fig.add_scatter(
-            x=filtered_df["SessionLapDate"],
-            y=trend,
-            mode='lines',
-            name='Tendência',
-            line=dict(dash='dash', color='white')
-        )
-    except Exception as e:
-        st.warning(f"Não foi possível adicionar linha de tendência: {e}")
-
-    fig.update_layout(
-        xaxis_tickangle=90,
-        xaxis_title="Session | Lap | Date",
-        yaxis_title=y_axis,
-        legend_title="Data",
-        height=700
+    fig.add_scatter(
+        x=filtered_df["SessionLapDate"],
+        y=trend,
+        mode='lines',
+        name='Tendência',
+        line=dict(color='red', width=4, dash='solid'),  # destacada
+        opacity=1.0,
+        showlegend=True
     )
-
-    st.plotly_chart(fig, use_container_width=True)
+except Exception as e:
+    st.warning(f"Não foi possível adicionar linha de tendência: {e}")
 
     # --- Exportar PDF ---
     st.sidebar.subheader("Exportar Gráficos em PDF")
