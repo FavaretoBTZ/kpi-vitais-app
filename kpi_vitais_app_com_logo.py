@@ -133,7 +133,8 @@ if uploaded_file is not None:
 
     
 #Distinguendo os elementos dos gráficos para não chamare, igual no código
-     if y_axis == y_axis_2:
+    # --- Verificação e exibição dos gráficos ---
+    if y_axis == y_axis_2:
         st.warning("Selecione duas métricas diferentes para comparar nos gráficos.")
     else:
         # --- Gráfico 1 ---
