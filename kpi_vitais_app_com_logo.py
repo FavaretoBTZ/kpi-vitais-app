@@ -131,6 +131,19 @@ if uploaded_file is not None:
 
     st.plotly_chart(fig2, use_container_width=True)
 
+    
+#Distinguendo os elementos dos gráficos para não chamare, igual no código
+     if y_axis == y_axis_2:
+        st.warning("Selecione duas métricas diferentes para comparar nos gráficos.")
+    else:
+        # --- Gráfico 1 ---
+        st.plotly_chart(fig, use_container_width=True)
+
+        # --- Gráfico 2 ---
+        st.markdown("---")
+        st.subheader("Segundo Gráfico Dinâmico")
+        st.plotly_chart(fig2, use_container_width=True)
+
     # --- Exportar PDF ---
     st.sidebar.subheader("Exportar Gráficos em PDF")
     if st.sidebar.button("Exportar Todos KPIs para PDF"):
