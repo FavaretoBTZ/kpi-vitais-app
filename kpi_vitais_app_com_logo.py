@@ -80,8 +80,8 @@ if uploaded_file is not None:
         st.markdown("---")
         st.subheader("Segundo Gráfico Dinâmico")
         st.plotly_chart(fig2, use_container_width=True)
-
-            # --- Scatter Plot à direita ---
+        
+# --- Scatter Plot à direita ---
         st.markdown("---")
         st.subheader("Gráfico de Dispersão (Scatter Plot)")
 
