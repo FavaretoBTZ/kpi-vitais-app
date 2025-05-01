@@ -19,16 +19,17 @@ if uploaded_file is not None:
     df['SessionDate - Info_str'] = df['SessionDate - Info'].astype(str)
     df['SessionLapDate'] = df['SessionName - Info'] + ' | Lap ' + df['Lap - Info'].astype(str) + ' | ' + df['SessionDate - Info_str']
 
-  # --- Sidebar para seleção ---
-    # --- Sidebar para seleção ---
+ # --- Sidebar para seleção ---
     st.sidebar.header("Filtros")
     car_alias = st.sidebar.selectbox("Selecione o CarAlias:", df['CarAlias - Info'].unique())
     y_axis = st.sidebar.selectbox("Selecione a métrica (Y Axis) para o gráfico 1:", list(df.columns[8:41]), key="metric_1")
     y_axis_2 = st.sidebar.selectbox("Selecione a métrica (Y Axis) para o gráfico 2:", list(df.columns[8:41]), key="metric_2")
     y_axis_scatter = st.sidebar.selectbox("Selecione a métrica para Scatter Plot:", list(df.columns[8:41]), key="scatter_metric")
 
+    filtered_df = df[df['CarAlias - Info'] == car_alias]
+    filtered_df = filtered_df.sort_values(by=['SessionDate - Info', 'SessionName - Info', 'Lap - Info'])
 
-# --- Gráfico 1 ---
+    # --- Gráfico 1 ---
     fig = px.line(
         filtered_df,
         x="SessionLapDate",
@@ -72,7 +73,7 @@ if uploaded_file is not None:
         height=700
     )
 
-    # --- Exibir os gráficos apenas se forem diferentes
+    # --- Gráficos Dinâmicos Condicionais ---
     if y_axis == y_axis_2:
         st.warning("Selecione duas métricas diferentes para comparar nos gráficos.")
     else:
@@ -80,13 +81,11 @@ if uploaded_file is not None:
         st.markdown("---")
         st.subheader("Segundo Gráfico Dinâmico")
         st.plotly_chart(fig2, use_container_width=True)
-        
-# --- Scatter Plot à direita ---
+
+        # --- Scatter Plot à direita ---
         st.markdown("---")
         st.subheader("Gráfico de Dispersão (Scatter Plot)")
-
-        col1, col2 = st.columns([2, 1])  # col1 para texto ou vazio, col2 para o gráfico à direita
-
+        col1, col2 = st.columns([2, 1])
         with col2:
             scatter_fig = px.scatter(
                 filtered_df,
@@ -105,7 +104,6 @@ if uploaded_file is not None:
                 height=600
             )
             st.plotly_chart(scatter_fig, use_container_width=True)
-
 
     # --- Exportar PDF ---
     st.sidebar.subheader("Exportar Gráficos em PDF")
