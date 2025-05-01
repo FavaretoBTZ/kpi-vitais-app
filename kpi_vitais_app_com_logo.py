@@ -52,6 +52,36 @@ if uploaded_file is not None:
 
     st.plotly_chart(fig, use_container_width=True)
 
+     # --- Segundo Gráfico Dinâmico (duplicado) ---
+    st.markdown("---")
+    st.subheader("Segundo Gráfico Dinâmico")
+
+    y_axis_2 = st.selectbox("Selecione a métrica (Y Axis) para o segundo gráfico:", list(df.columns[8:41]), key="second_metric")
+
+    fig2 = px.line(
+        filtered_df,
+        x="SessionLapDate",
+        y=y_axis_2,
+        color="TrackName - Info",
+        markers=True,
+        labels={
+            "SessionLapDate": "Session | Lap | Date",
+            y_axis_2: y_axis_2,
+            "TrackName - Info": "Etapa"
+        },
+        title=f"{y_axis_2} por Session/Lap/Date (Segundo Gráfico)"
+    )
+
+    fig2.update_layout(
+        xaxis_tickangle=90,
+        xaxis_title="Session | Lap | Date",
+        yaxis_title=y_axis_2,
+        legend_title="Data",
+        height=700
+    )
+
+    st.plotly_chart(fig2, use_container_width=True)
+
     # --- Exportar PDF ---
     st.sidebar.subheader("Exportar Gráficos em PDF")
     if st.sidebar.button("Exportar Todos KPIs para PDF"):
