@@ -82,8 +82,8 @@ if uploaded_file is not None:
         st.plotly_chart(fig2, use_container_width=True)
 
             # --- Scatter Plot à direita ---
-        st.markdown("---")
-        st.subheader("Gráfico de Dispersão (Scatter Plot)")
+    st.markdown("---")
+    st.subheader("Gráfico de Dispersão (Scatter Plot)")
 
         col1, col2 = st.columns([2, 1])  # col1 para texto ou vazio, col2 para o gráfico à direita
 
