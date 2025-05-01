@@ -19,13 +19,62 @@ if uploaded_file is not None:
     df['SessionDate - Info_str'] = df['SessionDate - Info'].astype(str)
     df['SessionLapDate'] = df['SessionName - Info'] + ' | Lap ' + df['Lap - Info'].astype(str) + ' | ' + df['SessionDate - Info_str']
 
-    # --- Sidebar para seleção ---
+  # --- Sidebar para seleção ---
     st.sidebar.header("Filtros")
     car_alias = st.sidebar.selectbox("Selecione o CarAlias:", df['CarAlias - Info'].unique())
-    y_axis = st.sidebar.selectbox("Selecione a métrica (Y Axis):", list(df.columns[8:41]))
+    y_axis = st.sidebar.selectbox("Selecione a métrica (Y Axis) para o gráfico 1:", list(df.columns[8:41]), key="metric_1")
+    y_axis_2 = st.sidebar.selectbox("Selecione a métrica (Y Axis) para o gráfico 2:", list(df.columns[8:41]), key="metric_2")
 
     filtered_df = df[df['CarAlias - Info'] == car_alias]
     filtered_df = filtered_df.sort_values(by=['SessionDate - Info', 'SessionName - Info', 'Lap - Info'])
+
+    # --- Gráfico 1 ---
+    fig = px.line(
+        filtered_df,
+        x="SessionLapDate",
+        y=y_axis,
+        color="TrackName - Info",
+        markers=True,
+        labels={
+            "SessionLapDate": "Session | Lap | Date",
+            y_axis: y_axis,
+            "TrackName - Info": "Etapa"
+        },
+        title=f"{y_axis} por Session/Lap/Date"
+    )
+    fig.update_layout(
+        xaxis_tickangle=90,
+        xaxis_title="Session | Lap | Date",
+        yaxis_title=y_axis,
+        legend_title="Data",
+        height=700
+    )
+    st.plotly_chart(fig, use_container_width=True)
+
+    # --- Gráfico 2 ---
+    st.markdown("---")
+    st.subheader("Segundo Gráfico Dinâmico")
+    fig2 = px.line(
+        filtered_df,
+        x="SessionLapDate",
+        y=y_axis_2,
+        color="TrackName - Info",
+        markers=True,
+        labels={
+            "SessionLapDate": "Session | Lap | Date",
+            y_axis_2: y_axis_2,
+            "TrackName - Info": "Etapa"
+        },
+        title=f"{y_axis_2} por Session/Lap/Date (Gráfico 2)"
+    )
+    fig2.update_layout(
+        xaxis_tickangle=90,
+        xaxis_title="Session | Lap | Date",
+        yaxis_title=y_axis_2,
+        legend_title="Data",
+        height=700
+    )
+    st.plotly_chart(fig2, use_container_width=True)
 
     # --- Gráfico Dinâmico ---
     fig = px.line(
