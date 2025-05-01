@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 
 st.set_page_config(layout="wide")
 st.image("btz_logo.png", width=1000)
-st.title("KPI VITAIS - Análise Dinâmica")
+st.title("KPI VITAIS - Análise Dinâmica", height=700)
 
 # --- Carregar o arquivo Excel ---
 uploaded_file = st.file_uploader("Escolha a planilha KPI VITAIS:", type=["xlsx"])
