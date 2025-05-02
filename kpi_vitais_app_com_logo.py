@@ -18,6 +18,14 @@ if uploaded_file is not None:
    # Substituir todos os NaN por zero
     df = df.fillna(0)
 
+       # --- Prepara colunas auxiliares ---
+    df['SessionDate - Info_str'] = df['SessionDate - Info'].astype(str)
+    df['SessionLapDate'] = (
+        df['SessionName - Info'].astype(str) +
+        ' | Lap ' + df['Lap - Info'].astype(str) +
+        ' | ' + df['SessionDate - Info'].astype(str)
+    )
+
     # --- Prepara colunas auxiliares ---
     df['SessionDate - Info_str'] = df['SessionDate - Info'].astype(str)
     df['SessionLapDate'] = df['SessionName - Info'] + ' | Lap ' + df['Lap - Info'].astype(str) + ' | ' + df['SessionDate - Info_str']
