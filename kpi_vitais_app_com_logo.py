@@ -15,18 +15,22 @@ uploaded_file = st.file_uploader("Escolha a planilha KPI VITAIS:", type=["xlsx"]
 if uploaded_file is not None:
     df = pd.read_excel(uploaded_file)
 
-    # Criação da coluna combinada 'SessionLapDate'
-    df['SessionDate - Info_str'] = df['SessionDate - Info'].astype(str)
+    # --- Normalizar nomes de colunas ---
+    df.columns = df.columns.str.strip()
+
+    # Identificar nomes corretos das colunas
+    col_session = [col for col in df.columns if "SessionName" in col][0]
+    col_lap = [col for col in df.columns if "Lap" in col][0]
+    col_date = [col for col in df.columns if "SessionDate" in col][0]
+    col_car = [col for col in df.columns if "CarAlias" in col][0]
+    col_track = [col for col in df.columns if "TrackName" in col][0]
+
+    # Criação da coluna combinada
     df['SessionLapDate'] = (
-        df['SessionName - Info'].astype(str) + 
-        ' | Lap ' + df['Lap - Info'].astype(str) + 
-        ' | ' + df['SessionDate - Info_str']
+        df[col_session].astype(str) +
+        ' | Lap ' + df[col_lap].astype(str) +
+        ' | ' + df[col_date].astype(str)
     )
-
-    # --- Prepara colunas auxiliares ---
-    df['SessionDate - Info_str'] = df['SessionDate - Info'].astype(str)
-    df['SessionLapDate'] = df['SessionName - Info'] + ' | Lap ' + df['Lap - Info'].astype(str) + ' | ' + df['SessionDate - Info_str']
-
  # --- Sidebar para seleção ---
     st.sidebar.header("Filtros")
     car_alias = st.sidebar.selectbox("Selecione o CarAlias:", df['CarAlias - Info'].unique())
