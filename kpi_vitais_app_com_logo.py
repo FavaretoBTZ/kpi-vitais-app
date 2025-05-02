@@ -15,6 +15,13 @@ uploaded_file = st.file_uploader("Escolha a planilha KPI VITAIS:", type=["xlsx"]
 if uploaded_file is not None:
     df = pd.read_excel(uploaded_file)
 
+    # Criação da coluna combinada 'SessionLapDate'
+df['SessionLapDate'] = (
+    df['SessionName - Info'].astype(str) + 
+    ' | Lap ' + df['Lap - Info'].astype(str) + 
+    ' | ' + df['SessionDate - Info'].astype(str)
+)
+
     # --- Prepara colunas auxiliares ---
     df['SessionDate - Info_str'] = df['SessionDate - Info'].astype(str)
     df['SessionLapDate'] = df['SessionName - Info'] + ' | Lap ' + df['Lap - Info'].astype(str) + ' | ' + df['SessionDate - Info_str']
