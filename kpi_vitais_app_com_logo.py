@@ -94,7 +94,14 @@ if uploaded_file is not None:
     if y_axis == y_axis_2:
         st.warning("Selecione duas métricas diferentes para comparar nos gráficos.")
     else:
+        col_plot1, col_stats1 = st.columns([4, 1])
+    with col_plot1:
         st.plotly_chart(fig, use_container_width=True)
+    with col_stats1:
+        st.subheader("Estatísticas")
+        st.metric("Mínimo", round(filtered_df[y_axis].min(), 2))
+        st.metric("Máximo", round(filtered_df[y_axis].max(), 2))
+        st.metric("Média", round(filtered_df[y_axis].mean(), 2))
         st.markdown("---")
           st.subheader("Segundo Gráfico Dinâmico")
     col_plot2, col_stats2 = st.columns([4, 1])
