@@ -113,6 +113,7 @@ if uploaded_file is not None:
         st.metric("Máximo", round(filtered_df[y_axis_2].max(), 2))
         st.metric("Média", round(filtered_df[y_axis_2].mean(), 2))
 
+        
         # --- Scatter Plot à direita ---
         st.markdown("---")
         st.subheader("Gráfico de Dispersão (Scatter Plot)")
