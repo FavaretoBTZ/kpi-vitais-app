@@ -102,27 +102,27 @@ if uploaded_file is not None:
         min_row = filtered_df[filtered_df[y_axis] == min_val].iloc[0]
         max_row = filtered_df[filtered_df[y_axis] == max_val].iloc[0]
 
-fig.add_scatter(
-    x=[min_row["SessionLapDate"]],
-    y=[min_val],
-    mode="markers+text",
-    marker=dict(color="blue", size=12, symbol="triangle-down"),
-    text=[f"Min: {min_val:.2f}"],
-    textposition="bottom center",
-    name="Mínimo"
-)
+    fig.add_scatter(
+        x=[min_row["SessionLapDate"]],
+        y=[min_val],
+        mode="markers+text",
+        marker=dict(color="blue", size=12, symbol="triangle-down"),
+        text=[f"Min: {min_val:.2f}"],
+        textposition="bottom center",
+        name="Mínimo"
+    )
 
-fig.add_scatter(
-    x=[max_row["SessionLapDate"]],
-    y=[max_val],
-    mode="markers+text",
-    marker=dict(color="red", size=12, symbol="triangle-up"),
-    text=[f"Max: {max_val:.2f}"],
-    textposition="top center",
-    name="Máximo"
-)
+    fig.add_scatter(
+        x=[max_row["SessionLapDate"]],
+        y=[max_val],
+        mode="markers+text",
+        marker=dict(color="red", size=12, symbol="triangle-up"),
+        text=[f"Max: {max_val:.2f}"],
+        textposition="top center",
+        name="Máximo"
+    )    
 
-st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, use_container_width=True)
     with col_stats1:
         st.subheader("Estatísticas")
         st.metric("Mínimo", round(filtered_df[y_axis].min(), 2))
