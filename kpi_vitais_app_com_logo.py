@@ -34,7 +34,7 @@ if uploaded_file is not None:
  # --- Sidebar para seleção ---
     st.sidebar.header("Filtros")
     car_alias = st.sidebar.selectbox("Selecione o CarAlias:", df['CarAlias - Info'].unique())
-    track_options = ["Visualizar Todos"] + sorted(df[col_track].dropna().unique().tolist())
+    track_options = ["VISUALIZAR TODAS AS ETAPAS"] + sorted(df[col_track].dropna().unique().tolist())
     track_selected = st.sidebar.selectbox("Selecione a Etapa (TrackName):", track_options)
     y_axis = st.sidebar.selectbox("Selecione a métrica (Y Axis) para o gráfico 1:", list(df.columns[8:41]), key="metric_1")
     y_axis_2 = st.sidebar.selectbox("Selecione a métrica (Y Axis) para o gráfico 2:", list(df.columns[8:41]), key="metric_2")
