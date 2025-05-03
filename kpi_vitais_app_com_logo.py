@@ -9,7 +9,6 @@ st.set_page_config(layout="wide")
 st.image("btz_logo.png", width=1000)
 st.title("KPI VITAIS - Análise Dinâmica")
 
-# --- Carregar o arquivo Excel ---
 uploaded_file = st.file_uploader("Escolha a planilha KPI VITAIS:", type=["xlsx"])
 
 if uploaded_file is not None:
@@ -43,7 +42,7 @@ if uploaded_file is not None:
         filtered_df = filtered_df[filtered_df[col_track] == track_selected]
     filtered_df = filtered_df.sort_values(by=[col_date, col_session, col_lap])
 
-    # Gráfico 1 com destaques
+    # Gráfico 1
     fig = px.line(
         filtered_df,
         x="SessionLapDate",
@@ -75,7 +74,6 @@ if uploaded_file is not None:
                     textposition="bottom center",
                     name="Mínimo"
                 )
-
                 fig.add_scatter(
                     x=[max_row["SessionLapDate"]],
                     y=[max_val],
@@ -85,7 +83,6 @@ if uploaded_file is not None:
                     textposition="top center",
                     name="Máximo"
                 )
-
             st.plotly_chart(fig, use_container_width=True)
 
         with col_stats1:
@@ -117,27 +114,26 @@ if uploaded_file is not None:
                 min_row2 = filtered_df[filtered_df[y_axis_2] == min_val2].iloc[0]
                 max_row2 = filtered_df[filtered_df[y_axis_2] == max_val2].iloc[0]
 
-    fig2.add_scatter(
-        x=[min_row2["SessionLapDate"]],
-        y=[min_val2],
-        mode="markers+text",
-        marker=dict(color="blue", size=12, symbol="triangle-down"),
-        text=[f"Min: {min_val2:.2f}"],
-        textposition="bottom center",
-        name="Mínimo"
-    )
-
-    fig2.add_scatter(
-        x=[max_row2["SessionLapDate"]],
-        y=[max_val2],
-        mode="markers+text",
-        marker=dict(color="red", size=12, symbol="triangle-up"),
-        text=[f"Max: {max_val2:.2f}"],
-        textposition="top center",
-        name="Máximo"
-    )
-
+                fig2.add_scatter(
+                    x=[min_row2["SessionLapDate"]],
+                    y=[min_val2],
+                    mode="markers+text",
+                    marker=dict(color="blue", size=12, symbol="triangle-down"),
+                    text=[f"Min: {min_val2:.2f}"],
+                    textposition="bottom center",
+                    name="Mínimo"
+                )
+                fig2.add_scatter(
+                    x=[max_row2["SessionLapDate"]],
+                    y=[max_val2],
+                    mode="markers+text",
+                    marker=dict(color="red", size=12, symbol="triangle-up"),
+                    text=[f"Max: {max_val2:.2f}"],
+                    textposition="top center",
+                    name="Máximo"
+                )
             st.plotly_chart(fig2, use_container_width=True)
+
         with col_stats2:
             st.subheader("Estatísticas")
             st.metric("Mínimo", round(filtered_df[y_axis_2].min(), 2))
