@@ -141,11 +141,12 @@ if uploaded_file is not None:
 
         
         # --- Scatter Plot à direita ---
-       st.markdown("---")
-        st.subheader("Gráfico de Dispersão (Scatter Plot)")
-        col1, col2 = st.columns([2, 1])
-        with col1:
-            scatter_fig = px.scatter(
+     else:
+    st.markdown("---")
+    st.subheader("Gráfico de Dispersão (Scatter Plot)")
+    col1, col2 = st.columns([2, 1])
+    with col1:
+        scatter_fig = px.scatter(
             filtered_df,
             x="SessionLapDate",
             y=y_axis_scatter,
