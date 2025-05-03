@@ -42,8 +42,8 @@ if uploaded_file is not None:
 
     filtered_df = df[df['CarAlias - Info'] == car_alias]
     if track_selected != "Visualizar Todos":
-    filtered_df = filtered_df[filtered_df['TrackName - Info'] == track_selected]
-    filtered_df = filtered_df.sort_values(by=['SessionDate - Info', 'SessionName - Info', 'Lap - Info'])
+        filtered_df = filtered_df[filtered_df['TrackName - Info'] == track_selected]
+        filtered_df = filtered_df.sort_values(by=['SessionDate - Info', 'SessionName - Info', 'Lap - Info'])
 
     # --- Gráfico 1 ---
     fig = px.line(
