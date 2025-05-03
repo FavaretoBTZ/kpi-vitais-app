@@ -5,10 +5,12 @@ import os
 from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.pyplot as plt
 
+
 st.set_page_config(layout="wide")
 st.image("btz_logo.png", width=1000)
 st.title("KPI VITAIS - Análise Dinâmica")
 
+# --- Upload do Excel ---
 uploaded_file = st.file_uploader("Escolha a planilha KPI VITAIS:", type=["xlsx"])
 
 if uploaded_file is not None:
@@ -27,7 +29,7 @@ if uploaded_file is not None:
         ' | ' + df[col_date].astype(str)
     )
 
-    # Sidebar
+    # --- Filtros ---
     st.sidebar.header("Filtros")
     car_alias = st.sidebar.selectbox("Selecione o CarAlias:", df[col_car].unique())
     track_options = ["VISUALIZAR TODAS AS ETAPAS"] + sorted(df[col_track].dropna().unique().tolist())
@@ -36,13 +38,12 @@ if uploaded_file is not None:
     y_axis_2 = st.sidebar.selectbox("Selecione a métrica (Y Axis) para o gráfico 2:", list(df.columns[8:41]), key="metric_2")
     y_axis_scatter = st.sidebar.selectbox("Selecione a métrica para Scatter Plot:", list(df.columns[8:41]), key="scatter_metric")
 
-    # Filtragem
     filtered_df = df[df[col_car] == car_alias]
     if track_selected != "VISUALIZAR TODAS AS ETAPAS":
         filtered_df = filtered_df[filtered_df[col_track] == track_selected]
     filtered_df = filtered_df.sort_values(by=[col_date, col_session, col_lap])
 
-    # Gráfico 1
+    # --- GRÁFICO 1 ---
     fig = px.line(
         filtered_df,
         x="SessionLapDate",
@@ -59,9 +60,10 @@ if uploaded_file is not None:
     else:
         col_plot1, col_stats1 = st.columns([4, 1])
         with col_plot1:
-            if not filtered_df[y_axis].isnull().all():
-                min_val = filtered_df[y_axis].min()
-                max_val = filtered_df[y_axis].max()
+            numeric_values = pd.to_numeric(filtered_df[y_axis], errors='coerce').dropna()
+            if not numeric_values.empty:
+                min_val = numeric_values.min()
+                max_val = numeric_values.max()
                 min_row = filtered_df[filtered_df[y_axis] == min_val].iloc[0]
                 max_row = filtered_df[filtered_df[y_axis] == max_val].iloc[0]
 
@@ -87,14 +89,14 @@ if uploaded_file is not None:
 
         with col_stats1:
             st.subheader("Estatísticas")
-            st.metric("Mínimo", round(filtered_df[y_axis].min(), 2))
-            st.metric("Máximo", round(filtered_df[y_axis].max(), 2))
-            st.metric("Média", round(filtered_df[y_axis].mean(), 2))
+            st.metric("Mínimo", round(numeric_values.min(), 2))
+            st.metric("Máximo", round(numeric_values.max(), 2))
+            st.metric("Média", round(numeric_values.mean(), 2))
 
+        # --- GRÁFICO 2 ---
         st.markdown("---")
         st.subheader("Segundo Gráfico Dinâmico")
 
-        # Gráfico 2
         fig2 = px.line(
             filtered_df,
             x="SessionLapDate",
@@ -108,9 +110,10 @@ if uploaded_file is not None:
 
         col_plot2, col_stats2 = st.columns([4, 1])
         with col_plot2:
-            if not filtered_df[y_axis_2].isnull().all():
-                min_val2 = filtered_df[y_axis_2].min()
-                max_val2 = filtered_df[y_axis_2].max()
+            numeric_values_2 = pd.to_numeric(filtered_df[y_axis_2], errors='coerce').dropna()
+            if not numeric_values_2.empty:
+                min_val2 = numeric_values_2.min()
+                max_val2 = numeric_values_2.max()
                 min_row2 = filtered_df[filtered_df[y_axis_2] == min_val2].iloc[0]
                 max_row2 = filtered_df[filtered_df[y_axis_2] == max_val2].iloc[0]
 
@@ -136,11 +139,11 @@ if uploaded_file is not None:
 
         with col_stats2:
             st.subheader("Estatísticas")
-            st.metric("Mínimo", round(filtered_df[y_axis_2].min(), 2))
-            st.metric("Máximo", round(filtered_df[y_axis_2].max(), 2))
-            st.metric("Média", round(filtered_df[y_axis_2].mean(), 2))
+            st.metric("Mínimo", round(numeric_values_2.min(), 2))
+            st.metric("Máximo", round(numeric_values_2.max(), 2))
+            st.metric("Média", round(numeric_values_2.mean(), 2))
 
-        # Scatter plot
+        # --- SCATTER PLOT ---
         st.markdown("---")
         st.subheader("Gráfico de Dispersão (Scatter Plot)")
         col1, col2 = st.columns([4, 1])
@@ -156,7 +159,7 @@ if uploaded_file is not None:
             scatter_fig.update_layout(xaxis_tickangle=90, height=600)
             st.plotly_chart(scatter_fig, use_container_width=True)
 
-    # Exportar PDF
+    # --- EXPORTAR PDF ---
     st.sidebar.subheader("Exportar Gráficos em PDF")
     if st.sidebar.button("Exportar Todos KPIs para PDF"):
         pdf_filename = f"{car_alias}_KPIs.pdf"
@@ -189,5 +192,6 @@ if uploaded_file is not None:
                 file_name=pdf_filename,
                 mime="application/pdf"
             )
+
 else:
     st.info("Envie o arquivo para iniciar a análise.")
