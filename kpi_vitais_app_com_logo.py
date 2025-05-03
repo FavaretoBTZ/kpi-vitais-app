@@ -41,7 +41,7 @@ if uploaded_file is not None:
     y_axis_scatter = st.sidebar.selectbox("Selecione a métrica para Scatter Plot:", list(df.columns[8:41]), key="scatter_metric")
 
     filtered_df = df[df['CarAlias - Info'] == car_alias]
-    if track_selected != "Visualizar Todos":
+    if track_selected != "VISUALIZAR TODAS AS ETAPAS":
         filtered_df = filtered_df[filtered_df['TrackName - Info'] == track_selected]
         filtered_df = filtered_df.sort_values(by=['SessionDate - Info', 'SessionName - Info', 'Lap - Info'])
 
