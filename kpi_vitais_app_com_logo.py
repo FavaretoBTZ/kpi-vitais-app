@@ -66,6 +66,7 @@ if uploaded_file is not None:
         legend_title="Data",
         height=700
     )
+    
 
     # --- Gráfico 2 ---
     fig2 = px.line(
@@ -95,8 +96,15 @@ if uploaded_file is not None:
     else:
         st.plotly_chart(fig, use_container_width=True)
         st.markdown("---")
-        st.subheader("Segundo Gráfico Dinâmico")
+          st.subheader("Segundo Gráfico Dinâmico")
+    col_plot2, col_stats2 = st.columns([4, 1])
+    with col_plot2:
         st.plotly_chart(fig2, use_container_width=True)
+    with col_stats2:
+        st.subheader("Estatísticas")
+        st.metric("Mínimo", round(filtered_df[y_axis_2].min(), 2))
+        st.metric("Máximo", round(filtered_df[y_axis_2].max(), 2))
+        st.metric("Média", round(filtered_df[y_axis_2].mean(), 2))
 
         # --- Scatter Plot à direita ---
         st.markdown("---")
