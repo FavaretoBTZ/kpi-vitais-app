@@ -111,6 +111,32 @@ if uploaded_file is not None:
 
         col_plot2, col_stats2 = st.columns([4, 1])
         with col_plot2:
+            if not filtered_df[y_axis_2].isnull().all():
+                min_val2 = filtered_df[y_axis_2].min()
+                max_val2 = filtered_df[y_axis_2].max()
+                min_row2 = filtered_df[filtered_df[y_axis_2] == min_val2].iloc[0]
+                max_row2 = filtered_df[filtered_df[y_axis_2] == max_val2].iloc[0]
+
+    fig2.add_scatter(
+        x=[min_row2["SessionLapDate"]],
+        y=[min_val2],
+        mode="markers+text",
+        marker=dict(color="blue", size=12, symbol="triangle-down"),
+        text=[f"Min: {min_val2:.2f}"],
+        textposition="bottom center",
+        name="Mínimo"
+    )
+
+    fig2.add_scatter(
+        x=[max_row2["SessionLapDate"]],
+        y=[max_val2],
+        mode="markers+text",
+        marker=dict(color="red", size=12, symbol="triangle-up"),
+        text=[f"Max: {max_val2:.2f}"],
+        textposition="top center",
+        name="Máximo"
+    )
+
             st.plotly_chart(fig2, use_container_width=True)
         with col_stats2:
             st.subheader("Estatísticas")
