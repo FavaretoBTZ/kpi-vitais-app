@@ -141,27 +141,27 @@ if uploaded_file is not None:
 
         
         # --- Scatter Plot à direita ---
-        st.markdown("---")
+       st.markdown("---")
         st.subheader("Gráfico de Dispersão (Scatter Plot)")
         col1, col2 = st.columns([2, 1])
-        with col2:
+        with col1:
             scatter_fig = px.scatter(
-                filtered_df,
-                x="SessionLapDate",
-                y=y_axis_scatter,
-                color="TrackName - Info",
-                labels={
-                    "SessionLapDate": "Session | Lap | Date",
-                    y_axis_scatter: y_axis_scatter,
-                    "TrackName - Info": "Etapa"
-                },
-                title=f"Scatter Plot: {y_axis_scatter}"
-            )
-            scatter_fig.update_layout(
-                xaxis_tickangle=90,
-                height=600
-            )
-            st.plotly_chart(scatter_fig, use_container_width=True)
+            filtered_df,
+            x="SessionLapDate",
+            y=y_axis_scatter,
+            color="TrackName - Info",
+            labels={
+                "SessionLapDate": "Session | Lap | Date",
+                y_axis_scatter: y_axis_scatter,
+                "TrackName - Info": "Etapa"
+            },
+            title=f"Scatter Plot: {y_axis_scatter}"
+        )
+        scatter_fig.update_layout(
+            xaxis_tickangle=90,
+            height=600
+        )
+        st.plotly_chart(scatter_fig, use_container_width=True)
 
     # --- Exportar PDF ---
     st.sidebar.subheader("Exportar Gráficos em PDF")
