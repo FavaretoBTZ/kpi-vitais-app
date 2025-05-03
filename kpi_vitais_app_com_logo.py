@@ -103,7 +103,7 @@ if uploaded_file is not None:
         st.metric("Máximo", round(filtered_df[y_axis].max(), 2))
         st.metric("Média", round(filtered_df[y_axis].mean(), 2))
         st.markdown("---")
-         st.subheader("Segundo Gráfico Dinâmico")
+        st.subheader("Segundo Gráfico Dinâmico")
     col_plot2, col_stats2 = st.columns([4, 1])
     with col_plot2:
         st.plotly_chart(fig2, use_container_width=True)
