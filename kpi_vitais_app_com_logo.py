@@ -97,10 +97,10 @@ if uploaded_file is not None:
         col_plot1, col_stats1 = st.columns([4, 1])
     with col_plot1:
         # Adiciona destaques de máximo e mínimo no gráfico
-min_val = filtered_df[y_axis].min()
-max_val = filtered_df[y_axis].max()
-min_row = filtered_df[filtered_df[y_axis] == min_val].iloc[0]
-max_row = filtered_df[filtered_df[y_axis] == max_val].iloc[0]
+        min_val = filtered_df[y_axis].min()
+        max_val = filtered_df[y_axis].max()
+        min_row = filtered_df[filtered_df[y_axis] == min_val].iloc[0]
+        max_row = filtered_df[filtered_df[y_axis] == max_val].iloc[0]
 
 fig.add_scatter(
     x=[min_row["SessionLapDate"]],
