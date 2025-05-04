@@ -20,25 +20,20 @@ def set_background(image_file):
     css_code = f"""
     <style>
     .stApp {{
-        background-image: url("data:image/jpg;base64,{bin_str}");
+        background-image: url("data:image/png;base64,{bin_str}");
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
-        opacity: 0.1;
+        opacity: 0.12;
     }}
     </style>
     """
     st.markdown(css_code, unsafe_allow_html=True)
 
-# --- APLICAR FUNDO COM A IMAGEM ENVIADA ---
-set_background("/mnt/data/BTZ CAMPEA.png")
+# --- APLICAR IMAGEM DE FUNDO (NOME ATUALIZADO) ---
+set_background("/mnt/data/69392f80-6c53-4a64-9b2e-e11600f0adba.png")
 
 # --- LOGO E TÍTULO ---
-st.image("btz_logo.png", width=1000)
-st.title("KPI VITAIS - Análise Dinâmica")
-
-
-st.set_page_config(layout="wide")
 st.image("btz_logo.png", width=1000)
 st.title("KPI VITAIS - Análise Dinâmica")
 
