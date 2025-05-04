@@ -24,14 +24,14 @@ def set_background(image_file):
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
-        opacity: 0.12;
+        opacity: 0.1;
     }}
     </style>
     """
     st.markdown(css_code, unsafe_allow_html=True)
 
-# --- APLICAR IMAGEM DE FUNDO (NOME ATUALIZADO) ---
-set_background("/mnt/data/69392f80-6c53-4a64-9b2e-e11600f0adba.png")
+# --- APLICAR IMAGEM DE FUNDO FINAL ---
+set_background("/mnt/data/BTZ CAMPEA.png")
 
 # --- LOGO E TÍTULO ---
 st.image("btz_logo.png", width=1000)
