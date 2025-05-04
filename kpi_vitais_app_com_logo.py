@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 # --- CONFIGURAÇÃO DO LAYOUT ---
 st.set_page_config(layout="wide")
 
-# --- FUNÇÃO PARA DEFINIR IMAGEM DE FUNDO LOCAL COMO BASE64 ---
+# --- FUNÇÃO PARA DEFINIR IMAGEM DE FUNDO COMO BASE64 ---
 def get_base64_of_bin_file(bin_file_path):
     with open(bin_file_path, 'rb') as f:
         data = f.read()
@@ -24,19 +24,18 @@ def set_background(image_file):
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
-        opacity: 0.1;
+        opacity: 0.12;
     }}
     </style>
     """
     st.markdown(css_code, unsafe_allow_html=True)
 
 # --- APLICAR IMAGEM DE FUNDO FINAL ---
-set_background("/mnt/data/BTZ CAMPEA.png")
+set_background("/mnt/data/59137d70-638e-485b-9991-57896bb3d06e.png")
 
 # --- LOGO E TÍTULO ---
 st.image("btz_logo.png", width=1000)
 st.title("KPI VITAIS - Análise Dinâmica")
-
 # --- Upload do Excel ---
 uploaded_file = st.file_uploader("Escolha a planilha KPI VITAIS:", type=["xlsx"])
 
