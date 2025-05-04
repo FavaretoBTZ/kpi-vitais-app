@@ -1,9 +1,41 @@
 import streamlit as st
+import base64
 import pandas as pd
 import plotly.express as px
 import os
 from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.pyplot as plt
+
+# --- CONFIGURAÇÃO DO LAYOUT ---
+st.set_page_config(layout="wide")
+
+# --- FUNÇÃO PARA DEFINIR IMAGEM DE FUNDO LOCAL COMO BASE64 ---
+def get_base64_of_bin_file(bin_file_path):
+    with open(bin_file_path, 'rb') as f:
+        data = f.read()
+    return base64.b64encode(data).decode()
+
+def set_background(image_file):
+    bin_str = get_base64_of_bin_file(image_file)
+    css_code = f"""
+    <style>
+    .stApp {{
+        background-image: url("data:image/jpg;base64,{bin_str}");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        opacity: 0.1;
+    }}
+    </style>
+    """
+    st.markdown(css_code, unsafe_allow_html=True)
+
+# --- APLICAR FUNDO COM A IMAGEM ENVIADA ---
+set_background("/mnt/data/BTZ CAMPEA.JPG")
+
+# --- LOGO E TÍTULO ---
+st.image("btz_logo.png", width=1000)
+st.title("KPI VITAIS - Análise Dinâmica")
 
 
 st.set_page_config(layout="wide")
