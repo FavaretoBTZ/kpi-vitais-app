@@ -31,11 +31,14 @@ def set_background(image_file):
     st.markdown(css_code, unsafe_allow_html=True)
 
 # --- APLICAR IMAGEM DE FUNDO FINAL ---
-set_background("/mnt/data/59137d70-638e-485b-9991-57896bb3d06e.png")
+set_background("/mnt/data/ff387a96-2e5d-41f5-a98f-0e4bece97605.png")
 
 # --- LOGO E TÍTULO ---
 st.image("btz_logo.png", width=1000)
 st.title("KPI VITAIS - Análise Dinâmica")
+
+
+
 # --- Upload do Excel ---
 uploaded_file = st.file_uploader("Escolha a planilha KPI VITAIS:", type=["xlsx"])
 
