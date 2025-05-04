@@ -32,7 +32,7 @@ def set_background(image_file):
     st.markdown(css_code, unsafe_allow_html=True)
 
 # --- APLICAR IMAGEM DE FUNDO FINAL ---
-set_background("/mnt/data/1aa16fd5-d157-4ba3-86c4-0d5942872468.png")
+set_background("/mnt/data/5ed1935f-6b18-4b76-b247-5833a10bb0fe.png")
 
 # --- LOGO E TÍTULO ---
 st.image("btz_logo.png", width=1000)
