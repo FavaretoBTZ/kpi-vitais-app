@@ -1,3 +1,4 @@
+
 import streamlit as st
 import base64
 import pandas as pd
@@ -31,13 +32,11 @@ def set_background(image_file):
     st.markdown(css_code, unsafe_allow_html=True)
 
 # --- APLICAR IMAGEM DE FUNDO FINAL ---
-set_background("/mnt/data/ff387a96-2e5d-41f5-a98f-0e4bece97605.png")
+set_background("/mnt/data/1aa16fd5-d157-4ba3-86c4-0d5942872468.png")
 
 # --- LOGO E TÍTULO ---
 st.image("btz_logo.png", width=1000)
 st.title("KPI VITAIS - Análise Dinâmica")
-
-
 
 # --- Upload do Excel ---
 uploaded_file = st.file_uploader("Escolha a planilha KPI VITAIS:", type=["xlsx"])
