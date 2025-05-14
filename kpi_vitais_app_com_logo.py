@@ -192,7 +192,6 @@ if uploaded_file is not None:
         x=metric_x,
         y=metric_y,
         color=col_track,
-        trendline="ols",
         hover_data=[col_session, col_lap, col_run],
         title=f"Dispersão: {metric_x} vs {metric_y}"
     )
