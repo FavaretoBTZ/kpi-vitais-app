@@ -55,7 +55,18 @@ if uploaded_file is not None:
         labels={"SessionLapDate": "Date | Run | Lap | Session | Track", y_axis: y_axis, col_track: "Etapa"},
         title=f"{y_axis} por Date/Run/Lap/Session/Track"
     )
-    fig.update_layout(xaxis_tickangle=90, height=700)
+    fig.update_layout(
+        xaxis_tickangle=90,
+        height=700,
+        legend=dict(
+            orientation="v",
+            x=1.02,
+            y=1,
+            xanchor="left",
+            font=dict(size=10)
+        ),
+        margin=dict(r=10)
+    )
 
     if y_axis == y_axis_2:
         st.warning("Selecione duas métricas diferentes para comparar nos gráficos.")
@@ -108,7 +119,18 @@ if uploaded_file is not None:
             labels={"SessionLapDate": "Date | Run | Lap | Session | Track", y_axis_2: y_axis_2, col_track: "Etapa"},
             title=f"{y_axis_2} por Date/Run/Lap/Session/Track (Gráfico 2)"
         )
-        fig2.update_layout(xaxis_tickangle=90, height=700)
+        fig2.update_layout(
+            xaxis_tickangle=90,
+            height=700,
+            legend=dict(
+                orientation="v",
+                x=1.02,
+                y=1,
+                xanchor="left",
+                font=dict(size=10)
+            ),
+            margin=dict(r=10)
+        )
 
         col_plot2, col_stats2 = st.columns([4, 1])
         with col_plot2:
@@ -197,4 +219,3 @@ if uploaded_file is not None:
 
 else:
     st.info("Envie o arquivo para iniciar a análise.")
-
