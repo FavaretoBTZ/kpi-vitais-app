@@ -146,7 +146,10 @@ if uploaded_file is not None:
             for col in df.columns[8:]:
                 plt.figure(figsize=(14, 7))
                 for session_date, group in df_sorted.groupby(col_date):
-                    plt.plot(group['SessionLapDate'], group[col], marker='o', label=str(session_date))
+                    y_data = pd.to_numeric(group[col], errors='coerce')
+                    x_data = group['SessionLapDate']
+                    if y_data.notna().any():
+                        plt.plot(x_data, y_data, marker='o', label=str(session_date))
                 plt.title(f"Linha: {col} por SessionLapDate")
                 plt.xlabel("SessionLapDate")
                 plt.ylabel(col)
