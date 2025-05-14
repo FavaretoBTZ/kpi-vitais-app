@@ -174,8 +174,8 @@ if uploaded_file is not None:
         logo_img = mpimg.imread("btz_logo.png")
         data_str = datetime.now().strftime("%d-%m-%Y")
         output_dir = r"C:\Users\vitor\OneDrive\Área de Trabalho\MotorSport\BTZ\Corrida\2025\25ET1\PDF's"
-os.makedirs(output_dir, exist_ok=True)
-pdf_path = os.path.join(output_dir, f"graficos_kpi_possiveis_{data_str}.pdf")
+        os.makedirs(output_dir, exist_ok=True)
+        pdf_path = os.path.join(output_dir, f"graficos_kpi_possiveis_{data_str}.pdf")
 
         with PdfPages(pdf_path) as pdf:
             # Capa
