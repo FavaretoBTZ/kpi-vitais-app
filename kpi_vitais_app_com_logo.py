@@ -169,11 +169,13 @@ if uploaded_file is not None:
     st.sidebar.markdown("---")
     st.sidebar.subheader("Exportar gráficos")
     exportar_pdf = st.sidebar.button("Exportar gráficos para PDF")
+    output_directory = r"C:\\Users\\vitor\\OneDrive\\Área de Trabalho\\MotorSport\\BTZ\\Corrida\\2025\\25ET1\\PDF's"
+    pdf_filename = os.path.join(output_directory, "KPI VITAIS - TESTE.pdf")
 
     if exportar_pdf:
         logo_img = mpimg.imread("btz_logo.png")
         data_str = datetime.now().strftime("%d-%m-%Y")
-        pdf_path = fr"C:\\Users\\vitor\\OneDrive\\Área de Trabalho\\MotorSport\\BTZ\\Corrida\\2025\\25ET1\\PDF's\\graficos_kpi_possiveis_{data_str}.pdf"
+        pdf_path = fr"C:\\Users\\vitor\\OneDrive\\Área de Trabalho\\MotorSport\\BTZ\\Corrida\\2025\\25ET1\\PDF's\\graficos_kpi_possiveis.pdf"
 
         with PdfPages(pdf_path) as pdf:
             # Capa
