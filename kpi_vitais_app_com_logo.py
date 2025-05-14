@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import os
+import itertools
 from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.pyplot as plt
 
@@ -55,122 +56,69 @@ if uploaded_file is not None:
         title=f"{y_axis} por Date/Run/Lap/Session/Track"
     )
     fig.update_layout(
-        xaxis=dict(
-            tickangle=90,
-            tickfont=dict(size=8)
-        ),
+        xaxis=dict(tickangle=90, tickfont=dict(size=8)),
         height=700,
-        legend=dict(
-            orientation="v",
-            x=1.02,
-            y=1,
-            xanchor="left",
-            font=dict(size=10)
-        ),
+        legend=dict(orientation="v", x=1.02, y=1, xanchor="left", font=dict(size=10)),
         margin=dict(r=10)
     )
 
-    if y_axis == y_axis_2:
-        st.warning("Selecione duas métricas diferentes para comparar nos gráficos.")
-    else:
-        col_plot1, col_stats1 = st.columns([4, 1])
-        with col_plot1:
-            numeric_values = pd.to_numeric(filtered_df[y_axis], errors='coerce').dropna()
-            if not numeric_values.empty:
-                min_val = numeric_values.min()
-                max_val = numeric_values.max()
-                min_row = filtered_df[filtered_df[y_axis] == min_val].iloc[0]
-                max_row = filtered_df[filtered_df[y_axis] == max_val].iloc[0]
+    col_plot1, col_stats1 = st.columns([4, 1])
+    with col_plot1:
+        numeric_values = pd.to_numeric(filtered_df[y_axis], errors='coerce').dropna()
+        if not numeric_values.empty:
+            min_val = numeric_values.min()
+            max_val = numeric_values.max()
+            min_row = filtered_df[filtered_df[y_axis] == min_val].iloc[0]
+            max_row = filtered_df[filtered_df[y_axis] == max_val].iloc[0]
 
-                fig.add_scatter(
-                    x=[min_row["SessionLapDate"]],
-                    y=[min_val],
-                    mode="markers+text",
-                    marker=dict(color="blue", size=12, symbol="triangle-down"),
-                    text=[f"Min: {min_val:.2f}"],
-                    textposition="bottom center",
-                    name="Mínimo"
-                )
-                fig.add_scatter(
-                    x=[max_row["SessionLapDate"]],
-                    y=[max_val],
-                    mode="markers+text",
-                    marker=dict(color="red", size=12, symbol="triangle-up"),
-                    text=[f"Max: {max_val:.2f}"],
-                    textposition="top center",
-                    name="Máximo"
-                )
-            st.plotly_chart(fig, use_container_width=True)
+            fig.add_scatter(x=[min_row["SessionLapDate"]], y=[min_val], mode="markers+text", marker=dict(color="blue", size=12, symbol="triangle-down"), text=[f"Min: {min_val:.2f}"], textposition="bottom center", name="Mínimo")
+            fig.add_scatter(x=[max_row["SessionLapDate"]], y=[max_val], mode="markers+text", marker=dict(color="red", size=12, symbol="triangle-up"), text=[f"Max: {max_val:.2f}"], textposition="top center", name="Máximo")
+        st.plotly_chart(fig, use_container_width=True)
 
-        with col_stats1:
-            st.subheader("Estatísticas")
-            st.metric("Mínimo", round(numeric_values.min(), 2))
-            st.metric("Máximo", round(numeric_values.max(), 2))
-            st.metric("Média", round(numeric_values.mean(), 2))
+    with col_stats1:
+        st.subheader("Estatísticas")
+        st.metric("Mínimo", round(numeric_values.min(), 2))
+        st.metric("Máximo", round(numeric_values.max(), 2))
+        st.metric("Média", round(numeric_values.mean(), 2))
 
-        # --- GRÁFICO 2 ---
-        st.markdown("---")
-        st.subheader("Segundo Gráfico Dinâmico")
+    # --- GRÁFICO 2 ---
+    st.markdown("---")
+    st.subheader("Segundo Gráfico Dinâmico")
 
-        fig2 = px.line(
-            filtered_df,
-            x="SessionLapDate",
-            y=y_axis_2,
-            color=col_track,
-            markers=True,
-            labels={"SessionLapDate": "Date | Run | Lap | Session | Track", y_axis_2: y_axis_2, col_track: "Etapa"},
-            title=f"{y_axis_2} por Date/Run/Lap/Session/Track (Gráfico 2)"
-        )
-        fig2.update_layout(
-            xaxis=dict(
-                tickangle=90,
-                tickfont=dict(size=8)
-            ),
-            height=700,
-            legend=dict(
-                orientation="v",
-                x=1.02,
-                y=1,
-                xanchor="left",
-                font=dict(size=10)
-            ),
-            margin=dict(r=10)
-        )
+    fig2 = px.line(
+        filtered_df,
+        x="SessionLapDate",
+        y=y_axis_2,
+        color=col_track,
+        markers=True,
+        labels={"SessionLapDate": "Date | Run | Lap | Session | Track", y_axis_2: y_axis_2, col_track: "Etapa"},
+        title=f"{y_axis_2} por Date/Run/Lap/Session/Track (Gráfico 2)"
+    )
+    fig2.update_layout(
+        xaxis=dict(tickangle=90, tickfont=dict(size=8)),
+        height=700,
+        legend=dict(orientation="v", x=1.02, y=1, xanchor="left", font=dict(size=10)),
+        margin=dict(r=10)
+    )
 
-        col_plot2, col_stats2 = st.columns([4, 1])
-        with col_plot2:
-            numeric_values_2 = pd.to_numeric(filtered_df[y_axis_2], errors='coerce').dropna()
-            if not numeric_values_2.empty:
-                min_val2 = numeric_values_2.min()
-                max_val2 = numeric_values_2.max()
-                min_row2 = filtered_df[filtered_df[y_axis_2] == min_val2].iloc[0]
-                max_row2 = filtered_df[filtered_df[y_axis_2] == max_val2].iloc[0]
+    col_plot2, col_stats2 = st.columns([4, 1])
+    with col_plot2:
+        numeric_values_2 = pd.to_numeric(filtered_df[y_axis_2], errors='coerce').dropna()
+        if not numeric_values_2.empty:
+            min_val2 = numeric_values_2.min()
+            max_val2 = numeric_values_2.max()
+            min_row2 = filtered_df[filtered_df[y_axis_2] == min_val2].iloc[0]
+            max_row2 = filtered_df[filtered_df[y_axis_2] == max_val2].iloc[0]
 
-                fig2.add_scatter(
-                    x=[min_row2["SessionLapDate"]],
-                    y=[min_val2],
-                    mode="markers+text",
-                    marker=dict(color="blue", size=12, symbol="triangle-down"),
-                    text=[f"Min: {min_val2:.2f}"],
-                    textposition="bottom center",
-                    name="Mínimo"
-                )
-                fig2.add_scatter(
-                    x=[max_row2["SessionLapDate"]],
-                    y=[max_val2],
-                    mode="markers+text",
-                    marker=dict(color="red", size=12, symbol="triangle-up"),
-                    text=[f"Max: {max_val2:.2f}"],
-                    textposition="top center",
-                    name="Máximo"
-                )
-            st.plotly_chart(fig2, use_container_width=True)
+            fig2.add_scatter(x=[min_row2["SessionLapDate"]], y=[min_val2], mode="markers+text", marker=dict(color="blue", size=12, symbol="triangle-down"), text=[f"Min: {min_val2:.2f}"], textposition="bottom center", name="Mínimo")
+            fig2.add_scatter(x=[max_row2["SessionLapDate"]], y=[max_val2], mode="markers+text", marker=dict(color="red", size=12, symbol="triangle-up"), text=[f"Max: {max_val2:.2f}"], textposition="top center", name="Máximo")
+        st.plotly_chart(fig2, use_container_width=True)
 
-        with col_stats2:
-            st.subheader("Estatísticas")
-            st.metric("Mínimo", round(numeric_values_2.min(), 2))
-            st.metric("Máximo", round(numeric_values_2.max(), 2))
-            st.metric("Média", round(numeric_values_2.mean(), 2))
+    with col_stats2:
+        st.subheader("Estatísticas")
+        st.metric("Mínimo", round(numeric_values_2.min(), 2))
+        st.metric("Máximo", round(numeric_values_2.max(), 2))
+        st.metric("Média", round(numeric_values_2.mean(), 2))
 
     # --- GRÁFICO 3: Dispersão com filtros dedicados ---
     st.markdown("---")
@@ -183,65 +131,81 @@ if uploaded_file is not None:
     metric_x = st.sidebar.selectbox("Métrica no eixo X:", list(df.columns[8:]), key="x_disp")
     metric_y = st.sidebar.selectbox("Métrica no eixo Y:", list(df.columns[8:]), key="y_disp")
 
-    show_trendline = st.sidebar.checkbox("Mostrar linha de tendência")
+    # --- Exportar gráficos para PDF ---
+    st.sidebar.markdown("---")
+    st.sidebar.subheader("Exportar gráficos")
+    exportar_pdf = st.sidebar.button("Exportar gráficos para PDF")
 
+    if exportar_pdf:
+        pdf_path = "graficos_kpi_possiveis.pdf"
+        with PdfPages(pdf_path) as pdf:
+            colors = itertools.cycle(plt.cm.tab20.colors)
+            date_colors = {date: next(colors) for date in df[col_date].unique()}
+            df_sorted = df.sort_values(by=[col_date, col_session, col_lap])
+
+            for col in df.columns[8:]:
+                plt.figure(figsize=(14, 7))
+                for session_date, group in df_sorted.groupby(col_date):
+                    plt.plot(group['SessionLapDate'], group[col], marker='o', label=str(session_date))
+                plt.title(f"Linha: {col} por SessionLapDate")
+                plt.xlabel("SessionLapDate")
+                plt.ylabel(col)
+                plt.xticks(rotation=90)
+                plt.grid(True)
+                plt.legend()
+                plt.tight_layout()
+                pdf.savefig()
+                plt.close()
+
+            for x in df.columns[8:]:
+                for y in df.columns[8:]:
+                    if x != y:
+                        plt.figure(figsize=(14, 7))
+                        for session_date, group in df_sorted.groupby(col_date):
+                            plt.scatter(group[x], group[y], label=str(session_date), alpha=0.7)
+                        plt.title(f"Dispersão: {x} vs {y}")
+                        plt.xlabel(x)
+                        plt.ylabel(y)
+                        plt.grid(True)
+                        plt.legend()
+                        plt.tight_layout()
+                        pdf.savefig()
+                        plt.close()
+        with open(pdf_path, "rb") as f:
+            st.sidebar.download_button("Baixar PDF", f, file_name=pdf_path)
+
+    # --- Gráfico de dispersão ---
     df_disp = df.copy()
     if track_disp != "TODAS AS ETAPAS":
         df_disp = df_disp[df_disp[col_track] == track_disp]
 
-    trendline_option = "ols" if show_trendline else None
+    try:
+        fig3 = px.scatter(
+            df_disp,
+            x=metric_x,
+            y=metric_y,
+            color=col_track,
+            trendline="ols",
+            hover_data=[col_session, col_lap, col_run],
+            title=f"Dispersão: {metric_x} vs {metric_y}"
+        )
+    except Exception:
+        fig3 = px.scatter(
+            df_disp,
+            x=metric_x,
+            y=metric_y,
+            color=col_track,
+            hover_data=[col_session, col_lap, col_run],
+            title=f"Dispersão: {metric_x} vs {metric_y}"
+        )
 
-    fig3 = px.scatter(
-        df_disp,
-        x=metric_x,
-        y=metric_y,
-        color=col_track,
-        trendline=trendline_option,
-        hover_data=[col_session, col_lap, col_run],
-        title=f"Dispersão: {metric_x} vs {metric_y}"
-    )
     fig3.update_layout(
         height=600,
         xaxis=dict(tickfont=dict(size=8)),
         yaxis=dict(tickfont=dict(size=8)),
-        legend=dict(
-            orientation="v",
-            x=1.02,
-            y=1,
-            xanchor="left",
-            font=dict(size=10)
-        )
+        legend=dict(orientation="v", x=1.02, y=1, xanchor="left", font=dict(size=10))
     )
     st.plotly_chart(fig3, use_container_width=True)
 
 else:
     st.info("Envie o arquivo para iniciar a análise.")
-
-# --- Exportar gráficos para PDF por métrica ---
-output_directory = r"C:\\Users\\vitor\\OneDrive\\Área de Trabalho\\MotorSport\\BTZ\\Corrida\\2025\\25ET1\\PDF's"
-pdf_filename = os.path.join(output_directory, "KPI VITAIS - 24ET2.pdf")
-
-with PdfPages(pdf_filename) as pdf:
-    filtered_df =  df[(df['TrackName - Info'] == '24ET2')]
-    filtered_df = filtered_df.sort_values(by=['SessionDate - Info', 'SessionName - Info', 'Lap - Info'])
-
-    colors = itertools.cycle(plt.cm.tab20.colors)
-    date_colors = {date: next(colors) for date in filtered_df['SessionDate - Info'].unique()}
-
-    for metric in df.columns[8:41]:
-        plt.figure(figsize=(14,7))
-        for session_date, group in filtered_df.groupby('SessionDate - Info'):
-            color = date_colors [session_date]
-            plt.plot(group['SessionLapDate'], group[metric], marker='o', color=color, label=session_date.date())
-        plt.title(f'{metric} por SessionDate/Session/Lap')
-        plt.xlabel('Session | Lap | Date')
-        plt.ylabel(metric)
-        plt.xticks(filtered_df['SessionLapDate'], rotation=90)
-        plt.grid(axis='y')
-        plt.legend(title='SessionDate')
-        plt.tight_layout()
-        pdf.savefig()
-        plt.close()
-
-print(f"PDF salvo em: {pdf_filename}")
-
