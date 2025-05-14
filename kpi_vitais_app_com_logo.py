@@ -5,6 +5,9 @@ import os
 import itertools
 from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.pyplot as plt
+from matplotlib.offsetbox import OffsetImage, AnnotationBbox
+import matplotlib.image as mpimg
+from datetime import datetime
 
 st.set_page_config(layout="wide")
 st.image("btz_logo.png", width=1000)
@@ -120,25 +123,34 @@ if uploaded_file is not None:
         st.metric("Máximo", round(numeric_values_2.max(), 2))
         st.metric("Média", round(numeric_values_2.mean(), 2))
 
-    # --- GRÁFICO 3: Dispersão com filtros dedicados ---
-    st.markdown("---")
-    st.subheader("Gráfico de Dispersão Personalizado")
-    st.sidebar.header("Filtros Dispersão")
-
-    track_options_disp = ["TODAS AS ETAPAS"] + sorted(df[col_track].dropna().unique().tolist())
-    track_disp = st.sidebar.selectbox("Etapa (TrackName) - Dispersão:", track_options_disp, key="track_disp")
-
-    metric_x = st.sidebar.selectbox("Métrica no eixo X:", list(df.columns[8:]), key="x_disp")
-    metric_y = st.sidebar.selectbox("Métrica no eixo Y:", list(df.columns[8:]), key="y_disp")
-
     # --- Exportar gráficos para PDF ---
     st.sidebar.markdown("---")
     st.sidebar.subheader("Exportar gráficos")
     exportar_pdf = st.sidebar.button("Exportar gráficos para PDF")
 
     if exportar_pdf:
-        pdf_path = "graficos_kpi_possiveis.pdf"
+        logo_img = mpimg.imread("btz_logo.png")
+        data_str = datetime.now().strftime("%d-%m-%Y")
+        pdf_path = fr"C:\\Users\\vitor\\OneDrive\\Área de Trabalho\\MotorSport\\BTZ\\Corrida\\2025\\25ET1\\PDF's\\graficos_kpi_possiveis_{data_str}.pdf"
+
         with PdfPages(pdf_path) as pdf:
+            # Capa
+            fig_capa = plt.figure(figsize=(11.69, 8.27))  # A4 landscape
+            ax = fig_capa.add_subplot(111)
+            ax.axis('off')
+
+            imagebox = OffsetImage(logo_img, zoom=1.5)
+            ab = AnnotationBbox(imagebox, (0.5, 0.6), frameon=False, box_alignment=(0.5, 0.5))
+            ax.add_artist(ab)
+
+            ax.text(0.5, 0.25, "Car Life - Vital #276", fontsize=20, ha="center")
+            ax.text(0.99, 0.05, "Engenheiros: Vitor Favareto Nunes", fontsize=10, ha="right")
+            ax.text(0.99, 0.01, "Matheus Syx", fontsize=10, ha="right")
+
+            pdf.savefig(fig_capa)
+            plt.close()
+
+            # Gráficos de linha
             colors = itertools.cycle(plt.cm.tab20.colors)
             date_colors = {date: next(colors) for date in df[col_date].unique()}
             df_sorted = df.sort_values(by=[col_date, col_session, col_lap])
@@ -160,42 +172,8 @@ if uploaded_file is not None:
                 pdf.savefig()
                 plt.close()
 
-            
         with open(pdf_path, "rb") as f:
-            st.sidebar.download_button("Baixar PDF", f, file_name=pdf_path)
-
-    # --- Gráfico de dispersão ---
-    df_disp = df.copy()
-    if track_disp != "TODAS AS ETAPAS":
-        df_disp = df_disp[df_disp[col_track] == track_disp]
-
-    try:
-        fig3 = px.scatter(
-            df_disp,
-            x=metric_x,
-            y=metric_y,
-            color=col_track,
-            trendline="ols",
-            hover_data=[col_session, col_lap, col_run],
-            title=f"Dispersão: {metric_x} vs {metric_y}"
-        )
-    except Exception:
-        fig3 = px.scatter(
-            df_disp,
-            x=metric_x,
-            y=metric_y,
-            color=col_track,
-            hover_data=[col_session, col_lap, col_run],
-            title=f"Dispersão: {metric_x} vs {metric_y}"
-        )
-
-    fig3.update_layout(
-        height=600,
-        xaxis=dict(tickfont=dict(size=8)),
-        yaxis=dict(tickfont=dict(size=8)),
-        legend=dict(orientation="v", x=1.02, y=1, xanchor="left", font=dict(size=10))
-    )
-    st.plotly_chart(fig3, use_container_width=True)
+            st.sidebar.download_button("Baixar PDF", f, file_name=os.path.basename(pdf_path))
 
 else:
     st.info("Envie o arquivo para iniciar a análise.")
