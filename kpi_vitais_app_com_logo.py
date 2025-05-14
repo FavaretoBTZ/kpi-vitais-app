@@ -27,7 +27,8 @@ if uploaded_file is not None:
         df[col_date].astype(str) +
         ' | Run ' + df[col_run].astype(str) +
         ' | Lap ' + df[col_lap].astype(str) +
-        ' | ' + df[col_session].astype(str)
+        ' | ' + df[col_session].astype(str) +
+        ' | Track ' + df[col_track].astype(str)
     )
 
     # --- Filtros ---
@@ -42,7 +43,7 @@ if uploaded_file is not None:
     filtered_df = df[df[col_car] == car_alias]
     if track_selected != "VISUALIZAR TODAS AS ETAPAS":
         filtered_df = filtered_df[filtered_df[col_track] == track_selected]
-    filtered_df = filtered_df.sort_values(by=[col_date, col_run, col_lap, col_session])
+    filtered_df = filtered_df.sort_values(by=[col_date, col_run, col_lap, col_session, col_track])
 
     # --- GRÁFICO 1 ---
     fig = px.line(
@@ -51,8 +52,8 @@ if uploaded_file is not None:
         y=y_axis,
         color=col_track,
         markers=True,
-        labels={"SessionLapDate": "Date | Run | Lap | Session", y_axis: y_axis, col_track: "Etapa"},
-        title=f"{y_axis} por Date/Run/Lap/Session"
+        labels={"SessionLapDate": "Date | Run | Lap | Session | Track", y_axis: y_axis, col_track: "Etapa"},
+        title=f"{y_axis} por Date/Run/Lap/Session/Track"
     )
     fig.update_layout(xaxis_tickangle=90, height=700)
 
@@ -104,8 +105,8 @@ if uploaded_file is not None:
             y=y_axis_2,
             color=col_track,
             markers=True,
-            labels={"SessionLapDate": "Date | Run | Lap | Session", y_axis_2: y_axis_2, col_track: "Etapa"},
-            title=f"{y_axis_2} por Date/Run/Lap/Session (Gráfico 2)"
+            labels={"SessionLapDate": "Date | Run | Lap | Session | Track", y_axis_2: y_axis_2, col_track: "Etapa"},
+            title=f"{y_axis_2} por Date/Run/Lap/Session/Track (Gráfico 2)"
         )
         fig2.update_layout(xaxis_tickangle=90, height=700)
 
@@ -154,7 +155,7 @@ if uploaded_file is not None:
                 x="SessionLapDate",
                 y=y_axis_scatter,
                 color=col_track,
-                labels={"SessionLapDate": "Date | Run | Lap | Session", y_axis_scatter: y_axis_scatter, col_track: "Etapa"},
+                labels={"SessionLapDate": "Date | Run | Lap | Session | Track", y_axis_scatter: y_axis_scatter, col_track: "Etapa"},
                 title=f"Scatter Plot: {y_axis_scatter}"
             )
             scatter_fig.update_layout(xaxis_tickangle=90, height=600)
@@ -176,8 +177,8 @@ if uploaded_file is not None:
                         marker='o',
                         label=session_date.date()
                     )
-                plt.title(f"{metric} por Date/Run/Lap/Session")
-                plt.xlabel("Date | Run | Lap | Session")
+                plt.title(f"{metric} por Date/Run/Lap/Session/Track")
+                plt.xlabel("Date | Run | Lap | Session | Track")
                 plt.ylabel(metric)
                 plt.xticks(rotation=90)
                 plt.grid(axis='y')
@@ -196,3 +197,4 @@ if uploaded_file is not None:
 
 else:
     st.info("Envie o arquivo para iniciar a análise.")
+
