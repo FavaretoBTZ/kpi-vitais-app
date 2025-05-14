@@ -45,7 +45,7 @@ if uploaded_file is not None:
         filtered_df = filtered_df[filtered_df[col_track] == track_selected]
     filtered_df = filtered_df.sort_values(by=[col_date, col_run, col_lap, col_session, col_track])
 
- # --- GRÁFICO 1 ---
+    # --- GRÁFICO 1 ---
     fig = px.line(
         filtered_df,
         x="SessionLapDate",
@@ -68,110 +68,44 @@ if uploaded_file is not None:
             xanchor="left",
             font=dict(size=10)
         ),
-        margin=dict(r=10)
+        margin=dict(r=10),
+        dragmode='select'
     )
 
-    if y_axis == y_axis_2:
-        st.warning("Selecione duas métricas diferentes para comparar nos gráficos.")
+    selected_points = plotly_events(fig, select_event=True, override_height=700, key="chart1")
+
+    if selected_points:
+        x_range = fig['layout']['xaxis']['range'] if 'range' in fig['layout']['xaxis'] else None
     else:
-        col_plot1, col_stats1 = st.columns([4, 1])
-        with col_plot1:
-            numeric_values = pd.to_numeric(filtered_df[y_axis], errors='coerce').dropna()
-            if not numeric_values.empty:
-                min_val = numeric_values.min()
-                max_val = numeric_values.max()
-                min_row = filtered_df[filtered_df[y_axis] == min_val].iloc[0]
-                max_row = filtered_df[filtered_df[y_axis] == max_val].iloc[0]
+        x_range = None
 
-                fig.add_scatter(
-                    x=[min_row["SessionLapDate"]],
-                    y=[min_val],
-                    mode="markers+text",
-                    marker=dict(color="blue", size=12, symbol="triangle-down"),
-                    text=[f"Min: {min_val:.2f}"],
-                    textposition="bottom center",
-                    name="Mínimo"
-                )
-                fig.add_scatter(
-                    x=[max_row["SessionLapDate"]],
-                    y=[max_val],
-                    mode="markers+text",
-                    marker=dict(color="red", size=12, symbol="triangle-up"),
-                    text=[f"Max: {max_val:.2f}"],
-                    textposition="top center",
-                    name="Máximo"
-                )
-            st.plotly_chart(fig, use_container_width=True)
-
-        with col_stats1:
-            st.subheader("Estatísticas")
-            st.metric("Mínimo", round(numeric_values.min(), 2))
-            st.metric("Máximo", round(numeric_values.max(), 2))
-            st.metric("Média", round(numeric_values.mean(), 2))
-
-        # --- GRÁFICO 2 ---
-        st.markdown("---")
-        st.subheader("Segundo Gráfico Dinâmico")
-
-        fig2 = px.line(
-            filtered_df,
-            x="SessionLapDate",
-            y=y_axis_2,
-            color=col_track,
-            markers=True,
-            labels={"SessionLapDate": "Date | Run | Lap | Session | Track", y_axis_2: y_axis_2, col_track: "Etapa"},
-            title=f"{y_axis_2} por Date/Run/Lap/Session/Track (Gráfico 2)"
-        )
-        fig2.update_layout(
-            xaxis=dict(
-                tickangle=90,
-                tickfont=dict(size=8)
-            ),
-            height=700,
-            legend=dict(
-                orientation="v",
-                x=1.02,
-                y=1,
-                xanchor="left",
-                font=dict(size=10)
-            ),
-            margin=dict(r=10)
-        )
-
-        col_plot2, col_stats2 = st.columns([4, 1])
-        with col_plot2:
-            numeric_values_2 = pd.to_numeric(filtered_df[y_axis_2], errors='coerce').dropna()
-            if not numeric_values_2.empty:
-                min_val2 = numeric_values_2.min()
-                max_val2 = numeric_values_2.max()
-                min_row2 = filtered_df[filtered_df[y_axis_2] == min_val2].iloc[0]
-                max_row2 = filtered_df[filtered_df[y_axis_2] == max_val2].iloc[0]
-
-                fig2.add_scatter(
-                    x=[min_row2["SessionLapDate"]],
-                    y=[min_val2],
-                    mode="markers+text",
-                    marker=dict(color="blue", size=12, symbol="triangle-down"),
-                    text=[f"Min: {min_val2:.2f}"],
-                    textposition="bottom center",
-                    name="Mínimo"
-                )
-                fig2.add_scatter(
-                    x=[max_row2["SessionLapDate"]],
-                    y=[max_val2],
-                    mode="markers+text",
-                    marker=dict(color="red", size=12, symbol="triangle-up"),
-                    text=[f"Max: {max_val2:.2f}"],
-                    textposition="top center",
-                    name="Máximo"
-                )
-            st.plotly_chart(fig2, use_container_width=True)
-
-        with col_stats2:
-            st.subheader("Estatísticas")
-            st.metric("Mínimo", round(numeric_values_2.min(), 2))
-            st.metric("Máximo", round(numeric_values_2.max(), 2))
-            st.metric("Média", round(numeric_values_2.mean(), 2))
+    # --- GRÁFICO 2 ---
+    fig2 = px.line(
+        filtered_df,
+        x="SessionLapDate",
+        y=y_axis_2,
+        color=col_track,
+        markers=True,
+        labels={"SessionLapDate": "Date | Run | Lap | Session | Track", y_axis_2: y_axis_2, col_track: "Etapa"},
+        title=f"{y_axis_2} por Date/Run/Lap/Session/Track (Gráfico 2)"
+    )
+    fig2.update_layout(
+        xaxis=dict(
+            tickangle=90,
+            tickfont=dict(size=8),
+            range=x_range
+        ),
+        height=700,
+        legend=dict(
+            orientation="v",
+            x=1.02,
+            y=1,
+            xanchor="left",
+            font=dict(size=10)
+        ),
+        margin=dict(r=10)
+    )
+    st.plotly_chart(fig2, use_container_width=True, key="chart2")
 
     # --- GRÁFICO 3: Dispersão com filtros dedicados ---
     st.markdown("---")
@@ -193,6 +127,7 @@ if uploaded_file is not None:
         x=metric_x,
         y=metric_y,
         color=col_track,
+        trendline="ols",
         hover_data=[col_session, col_lap, col_run],
         title=f"Dispersão: {metric_x} vs {metric_y}"
     )
