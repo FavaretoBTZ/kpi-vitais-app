@@ -4,4 +4,4 @@ pandas
 openpyxl
 matplotlib
 fsspec
-streamlit-plotly-events
+statsmodels
