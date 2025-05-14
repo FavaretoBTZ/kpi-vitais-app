@@ -56,7 +56,10 @@ if uploaded_file is not None:
         title=f"{y_axis} por Date/Run/Lap/Session/Track"
     )
     fig.update_layout(
-        xaxis_tickangle=90,
+        xaxis=dict(
+            tickangle=90,
+            tickfont=dict(size=8)
+        ),
         height=700,
         legend=dict(
             orientation="v",
@@ -120,7 +123,10 @@ if uploaded_file is not None:
             title=f"{y_axis_2} por Date/Run/Lap/Session/Track (Gráfico 2)"
         )
         fig2.update_layout(
-            xaxis_tickangle=90,
+            xaxis=dict(
+                tickangle=90,
+                tickfont=dict(size=8)
+            ),
             height=700,
             legend=dict(
                 orientation="v",
@@ -180,7 +186,13 @@ if uploaded_file is not None:
                 labels={"SessionLapDate": "Date | Run | Lap | Session | Track", y_axis_scatter: y_axis_scatter, col_track: "Etapa"},
                 title=f"Scatter Plot: {y_axis_scatter}"
             )
-            scatter_fig.update_layout(xaxis_tickangle=90, height=600)
+            scatter_fig.update_layout(
+                xaxis=dict(
+                    tickangle=90,
+                    tickfont=dict(size=8)
+                ),
+                height=600
+            )
             st.plotly_chart(scatter_fig, use_container_width=True)
 
     # --- EXPORTAR PDF ---
