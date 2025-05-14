@@ -137,7 +137,7 @@ if uploaded_file is not None:
     show_trendline = st.sidebar.checkbox("Mostrar linha de tendência")
 
     df_disp = df.copy()
-    if track_disp != "TODAS AS ETAPAS":
+    if track_disp != "VISUALIZAR TODAS AS ETAPAS":
         df_disp = df_disp[df_disp[col_track] == track_disp]
 
     trendline_option = "ols" if show_trendline else None
