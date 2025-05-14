@@ -183,20 +183,16 @@ if uploaded_file is not None:
     metric_x = st.sidebar.selectbox("Métrica no eixo X:", list(df.columns[8:]), key="x_disp")
     metric_y = st.sidebar.selectbox("Métrica no eixo Y:", list(df.columns[8:]), key="y_disp")
 
-    show_trendline = st.sidebar.checkbox("Mostrar linha de tendência")
-
     df_disp = df.copy()
     if track_disp != "TODAS AS ETAPAS":
         df_disp = df_disp[df_disp[col_track] == track_disp]
-
-    trendline_option = "ols" if show_trendline else None
 
     fig3 = px.scatter(
         df_disp,
         x=metric_x,
         y=metric_y,
         color=col_track,
-        trendline=trendline_option,
+        trendline="ols",
         hover_data=[col_session, col_lap, col_run],
         title=f"Dispersão: {metric_x} vs {metric_y}"
     )
