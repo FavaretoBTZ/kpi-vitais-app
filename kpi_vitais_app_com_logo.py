@@ -216,3 +216,32 @@ if uploaded_file is not None:
 
 else:
     st.info("Envie o arquivo para iniciar a análise.")
+
+# --- Exportar gráficos para PDF por métrica ---
+output_directory = r"C:\\Users\\vitor\\OneDrive\\Área de Trabalho\\MotorSport\\BTZ\\Corrida\\2025\\25ET1\\PDF's"
+pdf_filename = os.path.join(output_directory, "KPI VITAIS - 24ET2.pdf")
+
+with PdfPages(pdf_filename) as pdf:
+    filtered_df =  df[(df['TrackName - Info'] == '24ET2')]
+    filtered_df = filtered_df.sort_values(by=['SessionDate - Info', 'SessionName - Info', 'Lap - Info'])
+
+    colors = itertools.cycle(plt.cm.tab20.colors)
+    date_colors = {date: next(colors) for date in filtered_df['SessionDate - Info'].unique()}
+
+    for metric in df.columns[8:41]:
+        plt.figure(figsize=(14,7))
+        for session_date, group in filtered_df.groupby('SessionDate - Info'):
+            color = date_colors [session_date]
+            plt.plot(group['SessionLapDate'], group[metric], marker='o', color=color, label=session_date.date())
+        plt.title(f'{metric} por SessionDate/Session/Lap')
+        plt.xlabel('Session | Lap | Date')
+        plt.ylabel(metric)
+        plt.xticks(filtered_df['SessionLapDate'], rotation=90)
+        plt.grid(axis='y')
+        plt.legend(title='SessionDate')
+        plt.tight_layout()
+        pdf.savefig()
+        plt.close()
+
+print(f"PDF salvo em: {pdf_filename}")
+
