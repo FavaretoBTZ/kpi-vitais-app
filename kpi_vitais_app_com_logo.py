@@ -36,7 +36,7 @@ if uploaded_file is not None:
     )
 
     # --- Filtros Gerais ---
-    st.sidebar.header("Filtros")
+    st.sidebar.header("FILTROS GRÁFICOS DE LINHAS")
     car_alias = st.sidebar.selectbox("Selecione o CarAlias:", df[col_car].unique())
     track_options = ["VISUALIZAR TODAS AS ETAPAS"] + sorted(df[col_track].dropna().unique().tolist())
     track_selected = st.sidebar.selectbox("Selecione a Etapa (TrackName):", track_options)
@@ -126,7 +126,7 @@ if uploaded_file is not None:
      # --- GRÁFICO 3: Dispersão com filtros dedicados ---
     st.markdown("---")
     st.subheader("Gráfico de Dispersão Personalizado")
-    st.sidebar.header("Filtros Dispersão")
+    st.sidebar.header("FILTROS GRÁFICO DE DISPERSÃO")
 
     track_options_disp = ["VISUALIZAR TODAS AS ETAPAS"] + sorted(df[col_track].dropna().unique().tolist())
     track_disp = st.sidebar.selectbox("Etapa (TrackName) - Dispersão:", track_options_disp, key="track_disp")
