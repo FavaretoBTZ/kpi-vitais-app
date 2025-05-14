@@ -169,13 +169,62 @@ if uploaded_file is not None:
     st.sidebar.markdown("---")
     st.sidebar.subheader("Exportar gráficos")
     exportar_pdf = st.sidebar.button("Exportar gráficos para PDF")
-    output_directory = r"C:\\Users\\vitor\\OneDrive\\Área de Trabalho\\MotorSport\\BTZ\\Corrida\\2025\\25ET1\\PDF's"
-    pdf_filename = os.path.join(output_directory, "KPI VITAIS - TESTE.pdf")
 
     if exportar_pdf:
         logo_img = mpimg.imread("btz_logo.png")
         data_str = datetime.now().strftime("%d-%m-%Y")
         pdf_path = fr"C:\\Users\\vitor\\OneDrive\\Área de Trabalho\\MotorSport\\BTZ\\Corrida\\2025\\25ET1\\PDF's\\graficos_kpi_possiveis.pdf"
+
+        with PdfPages(pdf_path) as pdf:
+            # Capa
+            fig_capa = plt.figure(figsize=(11.69, 8.27))  # A4 landscape
+            ax = fig_capa.add_subplot(111)
+            ax.axis('off')
+
+            imagebox = OffsetImage(logo_img, zoom=1.5)
+            ab = AnnotationBbox(imagebox, (0.5, 0.6), frameon=False, box_alignment=(0.5, 0.5))
+            ax.add_artist(ab)
+
+            ax.text(0.5, 0.25, "Car Life - Vital #276", fontsize=20, ha="center")
+            ax.text(0.99, 0.05, "Engenheiros: Vitor Favareto Nunes", fontsize=10, ha="right")
+            ax.text(0.99, 0.01, "Matheus Syx", fontsize=10, ha="right")
+
+            pdf.savefig(fig_capa)
+            plt.close()
+
+            # Gráficos de linha
+            colors = itertools.cycle(plt.cm.tab20.colors)
+            date_colors = {date: next(colors) for date in df[col_date].unique()}
+            df_sorted = df.sort_values(by=[col_date, col_session, col_lap])
+
+            for col in df.columns[8:]:
+                plt.figure(figsize=(14, 7))
+                for session_date, group in df_sorted.groupby(col_date):
+                    y_data = pd.to_numeric(group[col], errors='coerce')
+                    x_data = group['SessionLapDate']
+                    if y_data.notna().any():
+                        plt.plot(x_data, y_data, marker='o', label=str(session_date))
+                plt.title(f"Linha: {col} por SessionLapDate")
+                plt.xlabel("SessionLapDate")
+                plt.ylabel(col)
+                plt.xticks(rotation=90)
+                plt.grid(True)
+                plt.legend()
+                plt.tight_layout()
+                pdf.savefig()
+                plt.close()
+
+    # --- Exportar gráficos para PDF ---
+    st.sidebar.markdown("---")
+    st.sidebar.subheader("Exportar gráficos")
+    exportar_pdf = st.sidebar.button("Exportar gráficos para PDF")
+
+    if exportar_pdf:
+        logo_img = mpimg.imread("btz_logo.png")
+        data_str = datetime.now().strftime("%d-%m-%Y")
+        output_dir = r"C:\Users\vitor\OneDrive\Área de Trabalho\MotorSport\BTZ\Corrida\2025\25ET1\PDF's"
+os.makedirs(output_dir, exist_ok=True)
+pdf_path = os.path.join(output_dir, f"graficos_kpi_possiveis_{data_str}.pdf")
 
         with PdfPages(pdf_path) as pdf:
             # Capa
