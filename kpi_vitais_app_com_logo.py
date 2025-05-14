@@ -128,7 +128,7 @@ if uploaded_file is not None:
     st.subheader("Gráfico de Dispersão Personalizado")
     st.sidebar.header("Filtros Dispersão")
 
-    track_options_disp = ["VISUALIZAR TODAS AS ETAPAS] + sorted(df[col_track].dropna().unique().tolist())
+    track_options_disp = ["VISUALIZAR TODAS AS ETAPAS"] + sorted(df[col_track].dropna().unique().tolist())
     track_disp = st.sidebar.selectbox("Etapa (TrackName) - Dispersão:", track_options_disp, key="track_disp")
 
     metric_x = st.sidebar.selectbox("Métrica no eixo X:", list(df.columns[8:]), key="x_disp")
