@@ -1,4 +1,3 @@
-...
     try:
         fig3 = px.scatter(
             df_disp,
@@ -32,4 +31,3 @@
         )
     )
     st.plotly_chart(fig3, use_container_width=True)
-...
