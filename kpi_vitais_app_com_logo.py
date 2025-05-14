@@ -4,6 +4,7 @@ import plotly.express as px
 import os
 from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.pyplot as plt
+from streamlit_plotly_events import plotly_events
 
 st.set_page_config(layout="wide")
 st.image("btz_logo.png", width=1000)
@@ -68,12 +69,16 @@ if uploaded_file is not None:
             xanchor="left",
             font=dict(size=10)
         ),
-        margin=dict(r=10)
+        margin=dict(r=10),
+        dragmode='select'
     )
 
-    chart1 = st.plotly_chart(fig, use_container_width=True, key="chart1")
-    relayout_data = chart1.get("relayoutData", {}) if isinstance(chart1, dict) else {}
-    xrange = relayout_data.get("xaxis.range", None)
+    selected_points = plotly_events(fig, select_event=True, override_height=700, key="chart1")
+
+    if selected_points:
+        x_range = fig['layout']['xaxis']['range'] if 'range' in fig['layout']['xaxis'] else None
+    else:
+        x_range = None
 
     # --- GRÁFICO 2 ---
     fig2 = px.line(
@@ -89,7 +94,7 @@ if uploaded_file is not None:
         xaxis=dict(
             tickangle=90,
             tickfont=dict(size=8),
-            range=xrange  # Aplicar zoom sincronizado
+            range=x_range
         ),
         height=700,
         legend=dict(
@@ -120,7 +125,7 @@ if uploaded_file is not None:
             xaxis=dict(
                 tickangle=90,
                 tickfont=dict(size=8),
-                range=xrange  # Aplicar zoom sincronizado
+                range=x_range
             ),
             height=600
         )
