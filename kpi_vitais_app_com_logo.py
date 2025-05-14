@@ -160,20 +160,7 @@ if uploaded_file is not None:
                 pdf.savefig()
                 plt.close()
 
-            for x in df.columns[8:]:
-                for y in df.columns[8:]:
-                    if x != y:
-                        plt.figure(figsize=(14, 7))
-                        for session_date, group in df_sorted.groupby(col_date):
-                            plt.scatter(group[x], group[y], label=str(session_date), alpha=0.7)
-                        plt.title(f"Dispersão: {x} vs {y}")
-                        plt.xlabel(x)
-                        plt.ylabel(y)
-                        plt.grid(True)
-                        plt.legend()
-                        plt.tight_layout()
-                        pdf.savefig()
-                        plt.close()
+            
         with open(pdf_path, "rb") as f:
             st.sidebar.download_button("Baixar PDF", f, file_name=pdf_path)
 
