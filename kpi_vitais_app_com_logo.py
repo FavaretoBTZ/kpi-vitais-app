@@ -187,6 +187,7 @@ if uploaded_file is not None:
         font=dict(size=10)
     )
 )
+    st.subheader("Gráfico 3 - Dispersão Personalizada")
     st.plotly_chart(fig3, use_container_width=True)
 
     # --- Exportar gráficos para PDF ---
