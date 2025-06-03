@@ -167,6 +167,7 @@ if uploaded_file is not None:
         title="Custom Scatter Plot"
     )
     fig3.update_layout(
+        title_font_size=50,
         title_font=dict(size=24, family="Arial", color="black"),
     height=600,
     xaxis=dict(
