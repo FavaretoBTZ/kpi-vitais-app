@@ -86,9 +86,12 @@ if uploaded_file is not None:
 
     with col_stats1:
         st.subheader("Statistic")
-        st.metric("Minimum", round(numeric_values.min(), 2))
-        st.metric("Maximum", round(numeric_values.max(), 2))
-        st.metric("Average", round(numeric_values.mean(), 2))
+        st.markdown("<h4>Minimum</h4>", unsafe_allow_html=True)
+        st.metric("", round(numeric_values.min(), 2)), 2))
+        st.markdown("<h4>Maximum</h4>", unsafe_allow_html=True)
+        st.metric("", round(numeric_values.max(), 2)), 2))
+        st.markdown("<h4>Average</h4>", unsafe_allow_html=True)
+        st.metric("", round(numeric_values.mean(), 2)), 2))
 
     # --- GRÁFICO 2 ---
     fig2 = px.line(
@@ -128,9 +131,12 @@ if uploaded_file is not None:
 
     with col_stats2:
         st.subheader("Statistic")
-        st.metric("Minimum", round(numeric_values_2.min(), 2))
-        st.metric("Maximum", round(numeric_values_2.max(), 2))
-        st.metric("Average", round(numeric_values_2.mean(), 2))
+        st.markdown("<h4>Minimum</h4>", unsafe_allow_html=True)
+        st.metric("", round(numeric_values_2.min(), 2))
+        st.markdown("<h4>Maximum</h4>", unsafe_allow_html=True)
+        st.metric("", round(numeric_values_2.max(), 2))
+        st.markdown("<h4>Average</h4>", unsafe_allow_html=True)
+        st.metric("", round(numeric_values_2.mean(), 2))
 
     # --- GRÁFICO 3: Dispersão ---
     st.sidebar.header("Scatter Graph Filters")
@@ -159,7 +165,7 @@ if uploaded_file is not None:
     )
 
     fig3.update_layout(
-        title_font=dict(size=50, family="Arial", color="white"),
+        title_font=dict(size=80, family="Arial", color="white"),
         height=600,
         xaxis=dict(tickfont=dict(size=8), title_font=dict(size=30)),
         yaxis=dict(tickfont=dict(size=8), title_font=dict(size=30)),
