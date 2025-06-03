@@ -86,9 +86,9 @@ if uploaded_file is not None:
 
     with col_stats1:
         st.subheader("Statistic")
-        st.metric("Minimum", round(numeric_values.min(), 2))
-        st.metric("Maximum", round(numeric_values.max(), 2))
-        st.metric("Average", round(numeric_values.mean(), 2))
+        st.metric("Minimum", round(numeric_values.min(), 10))
+        st.metric("Maximum", round(numeric_values.max(), 10))
+        st.metric("Average", round(numeric_values.mean(), 10))
 
     # --- GRÁFICO 2 ---
     fig2 = px.line(
