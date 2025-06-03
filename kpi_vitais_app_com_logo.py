@@ -39,7 +39,7 @@ if uploaded_file is not None:
     )
 
     # --- Filtros Gerais ---
-    st.sidebar.header("FILTROS GRÁFICOS DE LINHAS")
+    st.sidebar.header("Line Graphic Filters")
     car_alias = st.sidebar.selectbox("Selecione o CarAlias:", df[col_car].unique())
     track_options = ["VISUALIZAR TODAS AS ETAPAS"] + sorted(df[col_track].dropna().unique().tolist())
     track_selected = st.sidebar.selectbox("Selecione a Etapa (TrackName):", track_options)
@@ -82,14 +82,14 @@ if uploaded_file is not None:
         st.plotly_chart(fig, use_container_width=True)
 
     with col_stats1:
-        st.subheader("Estatísticas")
-        st.metric("Mínimo", round(numeric_values.min(), 2))
-        st.metric("Máximo", round(numeric_values.max(), 2))
-        st.metric("Média", round(numeric_values.mean(), 2))
+        st.subheader("Statistic")
+        st.metric("Minimum", round(numeric_values.min(), 2))
+        st.metric("Maximum", round(numeric_values.max(), 2))
+        st.metric("Average", round(numeric_values.mean(), 2))
 
     # --- GRÁFICO 2 ---
     st.markdown("---")
-    st.subheader("Segundo Gráfico Dinâmico")
+    st.subheader("Second graph")
 
     fig2 = px.line(
         filtered_df,
@@ -121,15 +121,15 @@ if uploaded_file is not None:
         st.plotly_chart(fig2, use_container_width=True)
 
     with col_stats2:
-        st.subheader("Estatísticas")
-        st.metric("Mínimo", round(numeric_values_2.min(), 2))
-        st.metric("Máximo", round(numeric_values_2.max(), 2))
-        st.metric("Média", round(numeric_values_2.mean(), 2))
+        st.subheader("Statistic")
+        st.metric("Minimum", round(numeric_values_2.min(), 2))
+        st.metric("Maximum", round(numeric_values_2.max(), 2))
+        st.metric("Average", round(numeric_values_2.mean(), 2))
 
      # --- GRÁFICO 3: Dispersão com filtros dedicados ---
     st.markdown("---")
-    st.subheader("Gráfico de Dispersão Personalizado")
-    st.sidebar.header("FILTROS GRÁFICO DE DISPERSÃO")
+    st.subheader("Custom Scatter Plot")
+    st.sidebar.header("Scatter Graph Filters")
 
     track_options_disp = ["VISUALIZAR TODAS AS ETAPAS"] + sorted(df[col_track].dropna().unique().tolist())
     track_disp = st.sidebar.selectbox("Etapa (TrackName) - Dispersão:", track_options_disp, key="track_disp")
