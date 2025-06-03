@@ -107,11 +107,19 @@ if uploaded_file is not None:
         
     )
     fig2.update_layout(
-        xaxis=dict(tickangle=90, tickfont=dict(size=8)),
-        height=700,
-        legend=dict(orientation="v", x=1.02, y=1, xanchor="left", font=dict(size=10)),
-        margin=dict(r=10)
-    )
+        title_font_size=50,
+    xaxis=dict(
+        tickangle=90,
+        tickfont=dict(size=8),
+        title_font=dict(size=30)
+    ),
+    yaxis=dict(
+        title_font=dict(size=30)
+    ),
+    height=700,
+    legend=dict(orientation="v", x=1.02, y=1, xanchor="left", font=dict(size=10)),
+    margin=dict(r=10)
+)
 
     col_plot2, col_stats2 = st.columns([4, 1])
     with col_plot2:
