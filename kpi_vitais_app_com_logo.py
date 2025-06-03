@@ -173,7 +173,7 @@ if uploaded_file is not None:
     height=600,
     xaxis=dict(
         tickfont=dict(size=8),
-        title_font=dict(size=50)
+        title_font=dict(size=30)
     ),
     yaxis=dict(
         tickfont=dict(size=8),
