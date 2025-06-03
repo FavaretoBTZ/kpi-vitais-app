@@ -94,8 +94,7 @@ if uploaded_file is not None:
         st.metric("Average", round(numeric_values.mean(), 2))
 
     # --- GRÁFICO 2 ---
-    st.markdown("---")
-    st.subheader("Second Graph")
+
 
     fig2 = px.line(
         filtered_df,
@@ -104,6 +103,7 @@ if uploaded_file is not None:
         color=col_track,
         markers=True,
         labels={"SessionLapDate": "Date | Run | Lap | Session | Track", y_axis_2: y_axis_2, col_track: "Etapa"},
+        title="Second Graph"
         
     )
     fig2.update_layout(
