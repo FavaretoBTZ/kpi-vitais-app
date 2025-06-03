@@ -64,10 +64,10 @@ if uploaded_file is not None:
     xaxis=dict(
         tickangle=90,
         tickfont=dict(size=8),
-        title_font=dict(size=16)
+        title_font=dict(size=22)
     ),
     yaxis=dict(
-        title_font=dict(size=16)
+        title_font=dict(size=22)
     ),
     height=700,
     legend=dict(orientation="v", x=1.02, y=1, xanchor="left", font=dict(size=10)),
