@@ -165,7 +165,7 @@ if uploaded_file is not None:
     )
 
     fig3.update_layout(
-        title_font=dict(size=80, family="Arial", color="white"),
+        title_font=dict(size=50, family="Arial", color="white"),
         height=600,
         xaxis=dict(tickfont=dict(size=8), title_font=dict(size=30)),
         yaxis=dict(tickfont=dict(size=8), title_font=dict(size=30)),
