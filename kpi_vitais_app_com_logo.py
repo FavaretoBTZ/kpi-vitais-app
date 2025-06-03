@@ -141,8 +141,6 @@ if uploaded_file is not None:
         st.metric("Average", round(numeric_values_2.mean(), 2))
 
      # --- GRÁFICO 3: Dispersão com filtros dedicados ---
-    st.markdown("---")
-    st.subheader("Custom Scatter Plot")
     st.sidebar.header("Scatter Graph Filters")
 
     track_options_disp = ["VISUALIZAR TODAS AS ETAPAS"] + sorted(df[col_track].dropna().unique().tolist())
@@ -167,6 +165,7 @@ if uploaded_file is not None:
         trendline=trendline_option,
         hover_data=[col_session, col_lap, col_run],
         title=f"Dispersão: {metric_x} vs {metric_y}"
+        title="Custom Scatter Plot"
     )
     fig3.update_layout(
         title_font=dict(size=24, family="Arial", color="black"),
@@ -184,7 +183,7 @@ if uploaded_file is not None:
         x=1.02,
         y=1,
         xanchor="left",
-        font=dict(size=50)
+        font=dict(size=10)
     )
 )
     st.plotly_chart(fig3, use_container_width=True)
