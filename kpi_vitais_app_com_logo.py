@@ -158,15 +158,17 @@ if uploaded_file is not None:
     trendline_option = "ols" if show_trendline else None
 
     fig3 = px.scatter(
-        df_disp,
-        x=metric_x,
-        y=metric_y,
-        color=col_track,
-        trendline=trendline_option,
-        hover_data=[col_session, col_lap, col_run],        
-    )
-    fig3.update_layout(
-        title_font=dict(size=80, family="Arial", color="black"),
+    df_disp,
+    x=metric_x,
+    y=metric_y,
+    color=col_track,
+    trendline=trendline_option,
+    hover_data=[col_session, col_lap, col_run],
+    title="Scatter Plot"
+)
+
+fig3.update_layout(
+    title_font=dict(size=80, family="Arial", color="black"),
     height=600,
     xaxis=dict(
         tickfont=dict(size=8),
@@ -184,6 +186,7 @@ if uploaded_file is not None:
         font=dict(size=10)
     )
 )
+
     st.subheader("Scatter Plot")
     st.plotly_chart(fig3, use_container_width=True)
 
