@@ -164,7 +164,6 @@ if uploaded_file is not None:
         color=col_track,
         trendline=trendline_option,
         hover_data=[col_session, col_lap, col_run],
-        title=f"Dispersão: {metric_x} vs {metric_y}"
         title="Custom Scatter Plot"
     )
     fig3.update_layout(
