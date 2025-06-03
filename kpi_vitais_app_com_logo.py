@@ -49,11 +49,7 @@ if uploaded_file is not None:
         filtered_df = filtered_df[filtered_df[col_track] == track_selected]
     filtered_df = filtered_df.sort_values(by=[col_date, col_run, col_lap, col_session, col_track])
 
-    # --- GRÁFICO 1 ---
-
-st.markdown("---")
-st.subheader("First graph")
-    
+    # --- GRÁFICO 1 ---    
     fig = px.line(
         filtered_df,
         x="SessionLapDate",
@@ -61,7 +57,7 @@ st.subheader("First graph")
         color=col_track,
         markers=True,
         labels={"SessionLapDate": "Date | Run | Lap | Session | Track", y_axis: y_axis, col_track: "Etapa"},
-        title=f"{y_axis} por Date/Run/Lap/Session/Track"
+        title="First Graph"
     )
     fig.update_layout(
         xaxis=dict(tickangle=90, tickfont=dict(size=8)),
@@ -91,7 +87,7 @@ st.subheader("First graph")
 
     # --- GRÁFICO 2 ---
     st.markdown("---")
-    st.subheader("Second graph")
+    st.subheader("Second Graph")
 
     fig2 = px.line(
         filtered_df,
