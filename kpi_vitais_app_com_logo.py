@@ -87,11 +87,11 @@ if uploaded_file is not None:
     with col_stats1:
         st.subheader("Statistic")
         st.markdown("<h4>Minimum</h4>", unsafe_allow_html=True)
-        st.metric("", round(numeric_values.min(), 2)), 2))
+        st.metric("", round(numeric_values.min(), 2))
         st.markdown("<h4>Maximum</h4>", unsafe_allow_html=True)
-        st.metric("", round(numeric_values.max(), 2)), 2))
+        st.metric("", round(numeric_values.max(), 2))
         st.markdown("<h4>Average</h4>", unsafe_allow_html=True)
-        st.metric("", round(numeric_values.mean(), 2)), 2))
+        st.metric("", round(numeric_values.mean(), 2))
 
     # --- GRÁFICO 2 ---
     fig2 = px.line(
