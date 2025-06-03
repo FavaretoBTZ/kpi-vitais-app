@@ -163,13 +163,10 @@ if uploaded_file is not None:
         y=metric_y,
         color=col_track,
         trendline=trendline_option,
-        hover_data=[col_session, col_lap, col_run],
-        title="Custom Scatter Plot"
-        
+        hover_data=[col_session, col_lap, col_run],        
     )
     fig3.update_layout(
-        title_font_size=50,
-        title_font=dict(size=24, family="Arial", color="black"),
+        title_font=dict(size=50, family="Arial", color="black"),
     height=600,
     xaxis=dict(
         tickfont=dict(size=8),
