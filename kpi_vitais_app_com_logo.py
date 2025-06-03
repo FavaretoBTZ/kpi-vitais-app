@@ -166,7 +166,7 @@ if uploaded_file is not None:
         hover_data=[col_session, col_lap, col_run],        
     )
     fig3.update_layout(
-        title_font=dict(size=50, family="Arial", color="black"),
+        title_font=dict(size=80, family="Arial", color="black"),
     height=600,
     xaxis=dict(
         tickfont=dict(size=8),
