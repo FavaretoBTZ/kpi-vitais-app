@@ -184,7 +184,7 @@ if uploaded_file is not None:
         x=1.02,
         y=1,
         xanchor="left",
-        font=dict(size=10)
+        font=dict(size=50)
     )
 )
     st.plotly_chart(fig3, use_container_width=True)
