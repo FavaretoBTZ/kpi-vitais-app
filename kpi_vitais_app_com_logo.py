@@ -16,8 +16,6 @@ st.title("KPI VITAIS - Análise Dinâmica")
 # --- Upload do Excel ---
 uploaded_file = st.file_uploader("Escolha a planilha KPI VITAIS:", type=["xlsx"])
 
-# Remove colunas completamente vazias
-df.dropna(axis=1, how='all', inplace=True)
 
 if uploaded_file is not None:
     df = pd.read_excel(uploaded_file)
