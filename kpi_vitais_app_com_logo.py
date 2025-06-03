@@ -60,7 +60,7 @@ if uploaded_file is not None:
         title="First Graph"
     )
     fig.update_layout(
-        title_font_size=22,
+        title_font_size=35,
         xaxis=dict(tickangle=90, tickfont=dict(size=8)),
         height=700,
         legend=dict(orientation="v", x=1.02, y=1, xanchor="left", font=dict(size=10)),
