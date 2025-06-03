@@ -50,6 +50,10 @@ if uploaded_file is not None:
     filtered_df = filtered_df.sort_values(by=[col_date, col_run, col_lap, col_session, col_track])
 
     # --- GRÁFICO 1 ---
+
+st.markdown("---")
+st.subheader("First graph")
+    
     fig = px.line(
         filtered_df,
         x="SessionLapDate",
