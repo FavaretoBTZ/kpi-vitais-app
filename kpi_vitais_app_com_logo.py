@@ -96,7 +96,7 @@ if uploaded_file is not None:
         color=col_track,
         markers=True,
         labels={"SessionLapDate": "Date | Run | Lap | Session | Track", y_axis_2: y_axis_2, col_track: "Etapa"},
-        title=f"{y_axis_2} por Date/Run/Lap/Session/Track (Gráfico 2)"
+        
     )
     fig2.update_layout(
         xaxis=dict(tickangle=90, tickfont=dict(size=8)),
