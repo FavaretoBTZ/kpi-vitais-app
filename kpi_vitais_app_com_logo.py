@@ -61,9 +61,9 @@ if uploaded_file is not None:
     )
     fig.update_layout(
         title_font_size=35,
-        xaxis=dict(tickangle=90, tickfont=dict(size=22)),
+        xaxis=dict(tickangle=90, tickfont=dict(size=8)),
         height=700,
-        legend=dict(orientation="v", x=1.02, y=1, xanchor="left", font=dict(size=22)),
+        legend=dict(orientation="v", x=1.02, y=1, xanchor="left", font=dict(size=10)),
         margin=dict(r=10)
     )
 
