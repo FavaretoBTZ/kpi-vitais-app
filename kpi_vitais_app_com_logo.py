@@ -165,6 +165,7 @@ if uploaded_file is not None:
         trendline=trendline_option,
         hover_data=[col_session, col_lap, col_run],
         title="Custom Scatter Plot"
+        
     )
     fig3.update_layout(
         title_font_size=50,
