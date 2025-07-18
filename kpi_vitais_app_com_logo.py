@@ -1,12 +1,6 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-import os
-import itertools
-from matplotlib.backends.backend_pdf import PdfPages
-import matplotlib.pyplot as plt
-from matplotlib.offsetbox import OffsetImage, AnnotationBbox
-import matplotlib.image as mpimg
 from datetime import datetime
 
 st.set_page_config(layout="wide")
@@ -15,45 +9,45 @@ st.title("KPI VITAIS - Análise Dinâmica")
 
 # --- Upload do Excel ---
 uploaded_file = st.file_uploader("Escolha a planilha KPI VITAIS:", type=["xlsx"])
-
-if uploaded_file is not None:
+if uploaded_file:
     df = pd.read_excel(uploaded_file)
     df.columns = df.columns.str.strip()
 
-    # Identificadores de coluna
-    col_session = [col for col in df.columns if "SessionName" in col][0]
-    col_lap     = [col for col in df.columns if "Lap" in col][0]
-    col_date    = [col for col in df.columns if "SessionDate" in col][0]
-    col_car     = [col for col in df.columns if "CarAlias" in col][0]
-    col_track   = [col for col in df.columns if "TrackName" in col][0]
-    col_run     = [col for col in df.columns if "Run" in col and "Info" in col][0]
+    # Identificar colunas-chave
+    col_session = [c for c in df.columns if "SessionName" in c][0]
+    col_lap     = [c for c in df.columns if "Lap" in c][0]
+    col_date    = [c for c in df.columns if "SessionDate" in c][0]
+    col_car     = [c for c in df.columns if "CarAlias" in c][0]
+    col_track   = [c for c in df.columns if "TrackName" in c][0]
+    col_run     = [c for c in df.columns if "Run" in c and "Info" in c][0]
 
-    # Campo composto para eixo X
-    df['SessionLapDate'] = (
-        df[col_date].astype(str) +
-        ' | Run ' + df[col_run].astype(str) +
-        ' | Lap ' + df[col_lap].astype(str) +
-        ' | ' + df[col_session].astype(str) +
-        ' | Track ' + df[col_track].astype(str)
+    # Criar eixo X composto
+    df["SessionLapDate"] = (
+        df[col_date].astype(str) + " | Run " + df[col_run].astype(str)
+        + " | Lap " + df[col_lap].astype(str) + " | " + df[col_session].astype(str)
+        + " | Track " + df[col_track].astype(str)
     )
 
-    # --- Filtros Gerais ---
+    # --- Sidebar: filtros gráficos de linha e extras ---
     st.sidebar.header("Line Graphic Filters")
-    car_alias     = st.sidebar.selectbox("Selecione o CarAlias:", df[col_car].unique())
+    car_alias = st.sidebar.selectbox("Selecione o CarAlias:", df[col_car].unique())
     track_options = ["VISUALIZAR TODAS AS ETAPAS"] + sorted(df[col_track].dropna().unique().tolist())
-    track_sel     = st.sidebar.selectbox("Selecione a Etapa (TrackName):", track_options)
-    y_axis        = st.sidebar.selectbox("Selecione a métrica (Y Axis) para o gráfico 1:", list(df.columns[8:41]), key="metric_1")
-    y_axis_2      = st.sidebar.selectbox("Selecione a métrica (Y Axis) para o gráfico 2:", list(df.columns[8:41]), key="metric_2")
+    track_sel = st.sidebar.selectbox("Selecione a Etapa (TrackName):", track_options)
+    y_axis   = st.sidebar.selectbox("Selecione métrica Gráfico 1:", list(df.columns[8:41]), key="metric_1")
+    y_axis_2 = st.sidebar.selectbox("Selecione métrica Gráfico 2:", list(df.columns[8:41]), key="metric_2")
 
-    # --- Filtros para Gráficos Extras ---
     st.sidebar.header("Extra Graph Filters")
-    metrics_extra = {}
-    for i in range(1, 7):
-        metrics_extra[i] = st.sidebar.selectbox(
-            f"Métrica (Y Axis) Gráfico Extra {i}:",
-            list(df.columns[8:41]),
-            key=f"metric_extra_{i}"
-        )
+    metrics_extra = {
+        i: st.sidebar.selectbox(
+            f"Métrica Gráfico Extra {i}:", list(df.columns[8:41]), key=f"metric_extra_{i}"
+        ) for i in range(1,7)
+    }
+
+    st.sidebar.header("Scatter Graph Filters")
+    track_disp     = st.sidebar.selectbox("Etapa - Scatter:", track_options, key="track_disp")
+    metric_x       = st.sidebar.selectbox("Métrica X (Scatter):", list(df.columns[8:]), key="x_disp")
+    metric_y       = st.sidebar.selectbox("Métrica Y (Scatter):", list(df.columns[8:]), key="y_disp")
+    show_trendline = st.sidebar.checkbox("Mostrar linha de tendência")
 
     # Filtrar DataFrame principal
     filtered_df = df[df[col_car] == car_alias]
@@ -61,106 +55,71 @@ if uploaded_file is not None:
         filtered_df = filtered_df[filtered_df[col_track] == track_sel]
     filtered_df = filtered_df.sort_values(by=[col_date, col_run, col_lap, col_session, col_track])
 
-    # --- Função auxiliar para plotar linha + stats ---
-    def plot_line_with_stats(data, y_metric, title, chart_height):
-        fig = px.line(
-            data, x="SessionLapDate", y=y_metric, color=col_track,
-            markers=True,
-            labels={"SessionLapDate": "Date | Run | Lap | Session | Track", y_metric: y_metric, col_track: "Etapa"},
-            title=title
-        )
-        fig.update_layout(
-            title_font=dict(size=40, family="Arial", color="white"),
-            xaxis=dict(tickangle=90, tickfont=dict(size=7)),
-            yaxis=dict(title_font=dict(size=25)),
-            height=chart_height,
-            legend=dict(orientation="v", x=1.02, y=1, xanchor="left", font=dict(size=8)),
-            margin=dict(r=10)
-        )
-
-        # stats
-        vals = pd.to_numeric(data[y_metric], errors='coerce').dropna()
-        if not vals.empty:
-            mn, mx = vals.min(), vals.max()
-            mn_row = data[data[y_metric] == mn].iloc[0]
-            mx_row = data[data[y_metric] == mx].iloc[0]
-            fig.add_scatter(
-                x=[mn_row["SessionLapDate"]], y=[mn], mode="markers+text",
-                marker=dict(color="blue", size=10, symbol="triangle-down"),
-                text=[f"Min: {mn:.2f}"], textposition="bottom center"
-            )
-            fig.add_scatter(
-                x=[mx_row["SessionLapDate"]], y=[mx], mode="markers+text",
-                marker=dict(color="red", size=10, symbol="triangle-up"),
-                text=[f"Max: {mx:.2f}"], textposition="top center"
-            )
-        return fig, vals
-
-    # --- GRÁFICO 1 e 2 ---
-    # Primeiro gráfico
-    fig1, vals1 = plot_line_with_stats(filtered_df, y_axis, "First Graph", 700)
-    fig2, vals2 = plot_line_with_stats(filtered_df, y_axis_2, "Second Graph", 700)
-
-    col1, col1_stats = st.columns([4, 1])
-    with col1:
-        st.plotly_chart(fig1, use_container_width=True)
-    with col1_stats:
-        st.subheader("Stats (G1)")
-        st.metric("Min", round(vals1.min(), 2))
-        st.metric("Max", round(vals1.max(), 2))
-        st.metric("Avg", round(vals1.mean(), 2))
-
-    col2, col2_stats = st.columns([4, 1])
-    with col2:
-        st.plotly_chart(fig2, use_container_width=True)
-    with col2_stats:
-        st.subheader("Stats (G2)")
-        st.metric("Min", round(vals2.min(), 2))
-        st.metric("Max", round(vals2.max(), 2))
-        st.metric("Avg", round(vals2.mean(), 2))
-
-    # --- GRÁFICOS EXTRAS ---
-    st.header("Gráficos Extras")
-    left, right = st.columns(2)
-    for idx, col_group in enumerate((left, right), start=0):
-        start_i = 1 + idx*3
-        end_i = start_i + 3
-        with col_group:
-            for i in range(start_i, end_i):
-                metric = metrics_extra[i]
-                fig_e, vals_e = plot_line_with_stats(filtered_df, metric, f"Extra {i}", 400)
-                st.plotly_chart(fig_e, use_container_width=True)
-                st.subheader(f"Stats (Extra {i})")
-                st.metric("Min", round(vals_e.min(), 2))
-                st.metric("Max", round(vals_e.max(), 2))
-                st.metric("Avg", round(vals_e.mean(), 2))
-
-    # --- GRÁFICO 3: Dispersão ---
-    st.sidebar.header("Scatter Graph Filters")
-    track_disp = st.sidebar.selectbox("Etapa (TrackName) - Dispersão:", track_options, key="track_disp")
-    metric_x = st.sidebar.selectbox("Métrica no eixo X:", list(df.columns[8:]), key="x_disp")
-    metric_y = st.sidebar.selectbox("Métrica no eixo Y:", list(df.columns[8:]), key="y_disp")
-    show_trendline = st.sidebar.checkbox("Mostrar linha de tendência")
-
+    # Preparar DataFrame para scatter
     df_disp = df.copy()
     if track_disp != "VISUALIZAR TODAS AS ETAPAS":
         df_disp = df_disp[df_disp[col_track] == track_disp]
-    trendline_option = "ols" if show_trendline else None
 
-    fig3 = px.scatter(
-        df_disp, x=metric_x, y=metric_y, color=col_track,
-        trendline=trendline_option,
-        hover_data=[col_session, col_lap, col_run],
-        title="Scatter Plot"
-    )
-    fig3.update_layout(
-        title_font=dict(size=50, family="Arial", color="white"),
-        height=600,
-        xaxis=dict(tickfont=dict(size=8), title_font=dict(size=30)),
-        yaxis=dict(tickfont=dict(size=8), title_font=dict(size=30)),
-        legend=dict(orientation="v", x=1.02, y=1, xanchor="left", font=dict(size=10))
-    )
-    st.plotly_chart(fig3, use_container_width=True)
+    # Função helper para plot de linha com stats
+    def plot_line_stats(data, metric, title):
+        fig = px.line(
+            data, x="SessionLapDate", y=metric, color=col_track, markers=True,
+            labels={"SessionLapDate": "Date | Run | Lap | Session | Track", metric: metric, col_track: "Etapa"},
+            title=title
+        )
+        fig.update_layout(
+            height=300,
+            title_font=dict(size=20),
+            xaxis=dict(tickangle=90, tickfont=dict(size=6)),
+            yaxis=dict(title_font=dict(size=15))
+        )
+        vals = pd.to_numeric(data[metric], errors="coerce").dropna()
+        if not vals.empty:
+            mn, mx = vals.min(), vals.max()
+            mn_row = data[data[metric] == mn].iloc[0]
+            mx_row = data[data[metric] == mx].iloc[0]
+            fig.add_scatter(
+                x=[mn_row["SessionLapDate"]], y=[mn], mode="markers+text",
+                marker=dict(symbol="triangle-down", size=8), text=[f"Min: {mn:.2f}"], textposition="bottom center"
+            )
+            fig.add_scatter(
+                x=[mx_row["SessionLapDate"]], y=[mx], mode="markers+text",
+                marker=dict(symbol="triangle-up", size=8), text=[f"Max: {mx:.2f}"], textposition="top center"
+            )
+        return fig, vals
 
+    # Configuração dos 9 gráficos
+    chart_configs = [
+        ("line", y_axis, "Gráfico 1"),
+        ("line", y_axis_2, "Gráfico 2"),
+    ] + [("line", metrics_extra[i], f"Extra {i}") for i in range(1,7)] + [("scatter", None, "Scatter Plot")]
+
+    # Exibir 3x3 grid
+    for row in range(3):
+        cols = st.columns(3)
+        for col_idx, col in enumerate(cols):
+            idx = row * 3 + col_idx
+            kind, metric, title = chart_configs[idx]
+            with col:
+                if kind == "line":
+                    fig, vals = plot_line_stats(filtered_df, metric, title)
+                    st.plotly_chart(fig, use_container_width=True)
+                    st.markdown(f"**Stats**: Min={vals.min():.2f}, Max={vals.max():.2f}, Avg={vals.mean():.2f}")
+                else:
+                    trend = "ols" if show_trendline else None
+                    fig_sc = px.scatter(
+                        df_disp, x=metric_x, y=metric_y, color=col_track,
+                        trendline=trend,
+                        hover_data=[col_session, col_lap, col_run],
+                        title=title
+                    )
+                    fig_sc.update_layout(
+                        height=300,
+                        title_font=dict(size=20),
+                        xaxis=dict(tickfont=dict(size=6)),
+                        yaxis=dict(title_font=dict(size=15))
+                    )
+                    st.plotly_chart(fig_sc, use_container_width=True)
 else:
     st.info("Envie o arquivo para iniciar a análise.")
+
