@@ -36,12 +36,12 @@ if uploaded_file:
     track_sel = st.sidebar.selectbox("Selecione a Etapa (TrackName):", track_options)
 
     # Seleção de métricas para Gráficos 1 a 8
-    metric1 = st.sidebar.selectbox("Selecione métrica Gráfico 1:", list(df.columns[8:41]), key="metric_1")
-    metric2 = st.sidebar.selectbox("Selecione métrica Gráfico 2:", list(df.columns[8:41]), key="metric_2")
+    metric1 = st.sidebar.selectbox("Selecione métrica Gráfico 1:", list(df.columns[8:]), key="metric_1")
+    metric2 = st.sidebar.selectbox("Selecione métrica Gráfico 2:", list(df.columns[8:]), key="metric_2")
     extra_metrics = {}
     for i in range(3, 9):
         extra_metrics[i] = st.sidebar.selectbox(
-            f"Selecione métrica Gráfico {i}:", list(df.columns[8:41]), key=f"metric_extra_{i}"
+            f"Selecione métrica Gráfico {i}:", list(df.columns[8:]), key=f"metric_extra_{i}"
         )
 
     # Scatter filters continuam separados
