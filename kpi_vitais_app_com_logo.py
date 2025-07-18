@@ -11,7 +11,7 @@ st.title("KPI VITAIS - Análise Dinâmica")
 uploaded_file = st.file_uploader("Escolha a planilha KPI VITAIS:", type=["xlsx"])
 if uploaded_file:
     # Ler apenas colunas A até BJ para base de dados de métricas
-df = pd.read_excel(uploaded_file, usecols="A:BJ")
+    df = pd.read_excel(uploaded_file, usecols="A:BJ")
     df.columns = df.columns.str.strip()
 
     # Identificar colunas-chave
@@ -39,7 +39,7 @@ df = pd.read_excel(uploaded_file, usecols="A:BJ")
     metric1 = st.sidebar.selectbox("Selecione métrica Gráfico 1:", list(df.columns[8:41]), key="metric_1")
     metric2 = st.sidebar.selectbox("Selecione métrica Gráfico 2:", list(df.columns[8:41]), key="metric_2")
     extra_metrics = {}
-    for i in range(3,9):
+    for i in range(3, 9):
         extra_metrics[i] = st.sidebar.selectbox(
             f"Selecione métrica Gráfico {i}:", list(df.columns[8:41]), key=f"metric_extra_{i}"
         )
@@ -95,7 +95,7 @@ df = pd.read_excel(uploaded_file, usecols="A:BJ")
         ("line", metric1, "Gráfico 1"),
         ("line", metric2, "Gráfico 2"),
     ] + [
-        ("line", extra_metrics[i], f"Gráfico {i}") for i in range(3,9)
+        ("line", extra_metrics[i], f"Gráfico {i}") for i in range(3, 9)
     ] + [("scatter", None, "Scatter Plot")]
 
     # Exibir 3x3 grid
