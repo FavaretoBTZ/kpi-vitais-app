@@ -20,13 +20,15 @@ if uploaded_file is not None:
     df = pd.read_excel(uploaded_file)
     df.columns = df.columns.str.strip()
 
+    # identificadores de coluna
     col_session = [col for col in df.columns if "SessionName" in col][0]
-    col_lap = [col for col in df.columns if "Lap" in col][0]
-    col_date = [col for col in df.columns if "SessionDate" in col][0]
-    col_car = [col for col in df.columns if "CarAlias" in col][0]
-    col_track = [col for col in df.columns if "TrackName" in col][0]
-    col_run = [col for col in df.columns if "Run" in col and "Info" in col][0]
+    col_lap     = [col for col in df.columns if "Lap" in col][0]
+    col_date    = [col for col in df.columns if "SessionDate" in col][0]
+    col_car     = [col for col in df.columns if "CarAlias" in col][0]
+    col_track   = [col for col in df.columns if "TrackName" in col][0]
+    col_run     = [col for col in df.columns if "Run" in col and "Info" in col][0]
 
+    # criar campo composto para o eixo X
     df['SessionLapDate'] = (
         df[col_date].astype(str) +
         ' | Run ' + df[col_run].astype(str) +
@@ -35,18 +37,33 @@ if uploaded_file is not None:
         ' | Track ' + df[col_track].astype(str)
     )
 
-    # --- Filtros Gerais ---
+    # --- Filtros dos 2 primeiros gráficos ---
     st.sidebar.header("Line Graphic Filters")
-    car_alias = st.sidebar.selectbox("Selecione o CarAlias:", df[col_car].unique())
+    car_alias     = st.sidebar.selectbox("Selecione o CarAlias:", df[col_car].unique())
     track_options = ["VISUALIZAR TODAS AS ETAPAS"] + sorted(df[col_track].dropna().unique().tolist())
-    track_selected = st.sidebar.selectbox("Selecione a Etapa (TrackName):", track_options)
-    y_axis = st.sidebar.selectbox("Selecione a métrica (Y Axis) para o gráfico 1:", list(df.columns[8:41]), key="metric_1")
-    y_axis_2 = st.sidebar.selectbox("Selecione a métrica (Y Axis) para o gráfico 2:", list(df.columns[8:41]), key="metric_2")
+    track_sel     = st.sidebar.selectbox("Selecione a Etapa (TrackName):", track_options)
+    y_axis        = st.sidebar.selectbox("Selecione a métrica (Y Axis) para o gráfico 1:", list(df.columns[8:41]), key="metric_1")
+    y_axis_2      = st.sidebar.selectbox("Selecione a métrica (Y Axis) para o gráfico 2:", list(df.columns[8:41]), key="metric_2")
 
+    # filtrar dataframe
     filtered_df = df[df[col_car] == car_alias]
-    if track_selected != "VISUALIZAR TODAS AS ETAPAS":
-        filtered_df = filtered_df[filtered_df[col_track] == track_selected]
+    if track_sel != "VISUALIZAR TODAS AS ETAPAS":
+        filtered_df = filtered_df[filtered_df[col_track] == track_sel]
     filtered_df = filtered_df.sort_values(by=[col_date, col_run, col_lap, col_session, col_track])
+
+    # --- Filtros Gráficos Extras ---
+    st.sidebar.header("Filtros Gráficos Extras")
+    extra_settings = {}
+    for i in range(1, 7):
+        show = st.sidebar.checkbox(f"Mostrar Gráfico Extra {i}", key=f"show_extra_{i}")
+        metric = None
+        if show:
+            metric = st.sidebar.selectbox(
+                f"Métrica (Y Axis) para Gráfico Extra {i}:",
+                list(df.columns[8:41]),
+                key=f"metric_extra_{i}"
+            )
+        extra_settings[i] = (show, metric)
 
     # --- GRÁFICO 1 ---
     fig = px.line(
@@ -138,12 +155,112 @@ if uploaded_file is not None:
         st.markdown("<h4>Average</h4>", unsafe_allow_html=True)
         st.metric("", round(numeric_values_2.mean(), 2))
 
+    # --- GRÁFICOS EXTRAS ---
+    st.header("Gráficos Extras")
+    col_extra1, col_extra2 = st.columns(2)
+
+    # Coluna 1: Gráficos Extra 1 a 3
+    with col_extra1:
+        for i in range(1, 4):
+            show, metric = extra_settings[i]
+            if show and metric:
+                fig_e = px.line(
+                    filtered_df,
+                    x="SessionLapDate",
+                    y=metric,
+                    color=col_track,
+                    markers=True,
+                    labels={"SessionLapDate": "Date | Run | Lap | Session | Track", metric: metric, col_track: "Etapa"},
+                    title=f"Extra {i}"
+                )
+                fig_e.update_layout(
+                    title_font=dict(size=40, family="Arial", color="white"),
+                    xaxis=dict(tickangle=90, tickfont=dict(size=7)),
+                    yaxis=dict(title_font=dict(size=25)),
+                    height=400,
+                    legend=dict(orientation="v", x=1.02, y=1, xanchor="left", font=dict(size=8)),
+                    margin=dict(r=10)
+                )
+
+                col_pe, col_se = st.columns([4, 1])
+                with col_pe:
+                    vals = pd.to_numeric(filtered_df[metric], errors='coerce').dropna()
+                    if not vals.empty:
+                        mn, mx = vals.min(), vals.max()
+                        mn_row = filtered_df[filtered_df[metric] == mn].iloc[0]
+                        mx_row = filtered_df[filtered_df[metric] == mx].iloc[0]
+                        fig_e.add_scatter(
+                            x=[mn_row["SessionLapDate"]], y=[mn],
+                            mode="markers+text",
+                            marker=dict(color="blue", size=10, symbol="triangle-down"),
+                            text=[f"Min: {mn:.2f}"], textposition="bottom center"
+                        )
+                        fig_e.add_scatter(
+                            x=[mx_row["SessionLapDate"]], y=[mx],
+                            mode="markers+text",
+                            marker=dict(color="red", size=10, symbol="triangle-up"),
+                            text=[f"Max: {mx:.2f}"], textposition="top center"
+                        )
+                    st.plotly_chart(fig_e, use_container_width=True)
+                with col_se:
+                    st.subheader("Stats")
+                    st.metric("Min", round(vals.min(), 2))
+                    st.metric("Max", round(vals.max(), 2))
+                    st.metric("Avg", round(vals.mean(), 2))
+
+    # Coluna 2: Gráficos Extra 4 a 6
+    with col_extra2:
+        for i in range(4, 7):
+            show, metric = extra_settings[i]
+            if show and metric:
+                fig_e = px.line(
+                    filtered_df,
+                    x="SessionLapDate",
+                    y=metric,
+                    color=col_track,
+                    markers=True,
+                    labels={"SessionLapDate": "Date | Run | Lap | Session | Track", metric: metric, col_track: "Etapa"},
+                    title=f"Extra {i}"
+                )
+                fig_e.update_layout(
+                    title_font=dict(size=40, family="Arial", color="white"),
+                    xaxis=dict(tickangle=90, tickfont=dict(size=7)),
+                    yaxis=dict(title_font=dict(size=25)),
+                    height=400,
+                    legend=dict(orientation="v", x=1.02, y=1, xanchor="left", font=dict(size=8)),
+                    margin=dict(r=10)
+                )
+
+                col_pe, col_se = st.columns([4, 1])
+                with col_pe:
+                    vals = pd.to_numeric(filtered_df[metric], errors='coerce').dropna()
+                    if not vals.empty:
+                        mn, mx = vals.min(), vals.max()
+                        mn_row = filtered_df[filtered_df[metric] == mn].iloc[0]
+                        mx_row = filtered_df[filtered_df[metric] == mx].iloc[0]
+                        fig_e.add_scatter(
+                            x=[mn_row["SessionLapDate"]], y=[mn],
+                            mode="markers+text",
+                            marker=dict(color="blue", size=10, symbol="triangle-down"),
+                            text=[f"Min: {mn:.2f}"], textposition="bottom center"
+                        )
+                        fig_e.add_scatter(
+                            x=[mx_row["SessionLapDate"]], y=[mx],
+                            mode="markers+text",
+                            marker=dict(color="red", size=10, symbol="triangle-up"),
+                            text=[f"Max: {mx:.2f}"], textposition="top center"
+                        )
+                    st.plotly_chart(fig_e, use_container_width=True)
+                with col_se:
+                    st.subheader("Stats")
+                    st.metric("Min", round(vals.min(), 2))
+                    st.metric("Max", round(vals.max(), 2))
+                    st.metric("Avg", round(vals.mean(), 2))
+
     # --- GRÁFICO 3: Dispersão ---
     st.sidebar.header("Scatter Graph Filters")
-
     track_options_disp = ["VISUALIZAR TODAS AS ETAPAS"] + sorted(df[col_track].dropna().unique().tolist())
     track_disp = st.sidebar.selectbox("Etapa (TrackName) - Dispersão:", track_options_disp, key="track_disp")
-
     metric_x = st.sidebar.selectbox("Métrica no eixo X:", list(df.columns[8:]), key="x_disp")
     metric_y = st.sidebar.selectbox("Métrica no eixo Y:", list(df.columns[8:]), key="y_disp")
     show_trendline = st.sidebar.checkbox("Mostrar linha de tendência")
@@ -151,7 +268,6 @@ if uploaded_file is not None:
     df_disp = df.copy()
     if track_disp != "VISUALIZAR TODAS AS ETAPAS":
         df_disp = df_disp[df_disp[col_track] == track_disp]
-
     trendline_option = "ols" if show_trendline else None
 
     fig3 = px.scatter(
@@ -163,7 +279,6 @@ if uploaded_file is not None:
         hover_data=[col_session, col_lap, col_run],
         title="Scatter Plot"
     )
-
     fig3.update_layout(
         title_font=dict(size=50, family="Arial", color="white"),
         height=600,
@@ -171,8 +286,8 @@ if uploaded_file is not None:
         yaxis=dict(tickfont=dict(size=8), title_font=dict(size=30)),
         legend=dict(orientation="v", x=1.02, y=1, xanchor="left", font=dict(size=10))
     )
-
     st.plotly_chart(fig3, use_container_width=True)
 
 else:
     st.info("Envie o arquivo para iniciar a análise.")
+
