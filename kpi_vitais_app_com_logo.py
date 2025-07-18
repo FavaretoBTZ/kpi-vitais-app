@@ -10,7 +10,8 @@ st.title("KPI VITAIS - Análise Dinâmica")
 # --- Upload do Excel ---
 uploaded_file = st.file_uploader("Escolha a planilha KPI VITAIS:", type=["xlsx"])
 if uploaded_file:
-    df = pd.read_excel(uploaded_file)
+    # Ler apenas colunas A até BJ para base de dados de métricas
+df = pd.read_excel(uploaded_file, usecols="A:BJ")
     df.columns = df.columns.str.strip()
 
     # Identificar colunas-chave
@@ -125,5 +126,6 @@ if uploaded_file:
                     st.plotly_chart(fig_sc, use_container_width=True)
 else:
     st.info("Envie o arquivo para iniciar a análise.")
+
 
 
