@@ -28,21 +28,22 @@ if uploaded_file:
         + " | Track " + df[col_track].astype(str)
     )
 
-    # --- Sidebar: filtros gráficos de linha e extras ---
+    # --- Sidebar: filtros gráficos de linha ---
     st.sidebar.header("Line Graphic Filters")
     car_alias = st.sidebar.selectbox("Selecione o CarAlias:", df[col_car].unique())
     track_options = ["VISUALIZAR TODAS AS ETAPAS"] + sorted(df[col_track].dropna().unique().tolist())
     track_sel = st.sidebar.selectbox("Selecione a Etapa (TrackName):", track_options)
-    y_axis   = st.sidebar.selectbox("Selecione métrica Gráfico 1:", list(df.columns[8:41]), key="metric_1")
-    y_axis_2 = st.sidebar.selectbox("Selecione métrica Gráfico 2:", list(df.columns[8:41]), key="metric_2")
 
-    st.sidebar.header("Extra Graph Filters")
-    metrics_extra = {
-        i: st.sidebar.selectbox(
-            f"Métrica Gráfico Extra {i}:", list(df.columns[8:41]), key=f"metric_extra_{i}"
-        ) for i in range(1,7)
-    }
+    # Seleção de métricas para Gráficos 1 a 8
+    metric1 = st.sidebar.selectbox("Selecione métrica Gráfico 1:", list(df.columns[8:41]), key="metric_1")
+    metric2 = st.sidebar.selectbox("Selecione métrica Gráfico 2:", list(df.columns[8:41]), key="metric_2")
+    extra_metrics = {}
+    for i in range(3,9):
+        extra_metrics[i] = st.sidebar.selectbox(
+            f"Selecione métrica Gráfico {i}:", list(df.columns[8:41]), key=f"metric_extra_{i}"
+        )
 
+    # Scatter filters continuam separados
     st.sidebar.header("Scatter Graph Filters")
     track_disp     = st.sidebar.selectbox("Etapa - Scatter:", track_options, key="track_disp")
     metric_x       = st.sidebar.selectbox("Métrica X (Scatter):", list(df.columns[8:]), key="x_disp")
@@ -90,9 +91,11 @@ if uploaded_file:
 
     # Configuração dos 9 gráficos
     chart_configs = [
-        ("line", y_axis, "Gráfico 1"),
-        ("line", y_axis_2, "Gráfico 2"),
-    ] + [("line", metrics_extra[i], f"Extra {i}") for i in range(1,7)] + [("scatter", None, "Scatter Plot")]
+        ("line", metric1, "Gráfico 1"),
+        ("line", metric2, "Gráfico 2"),
+    ] + [
+        ("line", extra_metrics[i], f"Gráfico {i}") for i in range(3,9)
+    ] + [("scatter", None, "Scatter Plot")]
 
     # Exibir 3x3 grid
     for row in range(3):
@@ -122,4 +125,5 @@ if uploaded_file:
                     st.plotly_chart(fig_sc, use_container_width=True)
 else:
     st.info("Envie o arquivo para iniciar a análise.")
+
 
