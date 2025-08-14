@@ -91,7 +91,7 @@ if uploaded_file:
     if track_disp != "VISUALIZAR TODAS AS ETAPAS":
         df_disp = df_disp[df_disp[col_track] == track_disp]
 
-    # Função helper para plot de linha com stats (converte métrica para numérico aqui)
+    # Função helper para plot de linha com stats
     def plot_line_stats(data, metric, title):
         if data.empty:
             return None, "_Sem dados_"
@@ -127,12 +127,12 @@ if uploaded_file:
             stats_text = "_Sem dados numéricos válidos para estatísticas_"
         return fig, stats_text
 
-    # Configuração dos 9 gráficos
+    # Configuração dos 9 gráficos com títulos = métricas selecionadas
     chart_configs = [
-        ("line", metric1, "Gráfico 1"),
-        ("line", metric2, "Gráfico 2"),
+        ("line", metric1, metric1),
+        ("line", metric2, metric2),
     ] + [
-        ("line", extra_metrics[i], f"Gráfico {i}") for i in range(3, 9)
+        ("line", extra_metrics[i], extra_metrics[i]) for i in range(3, 9)
     ] + [("scatter", None, "Scatter Plot")]
 
     # Exibir 3x3 grid
