@@ -33,7 +33,6 @@ if uploaded_file:
     def as_numeric_column(frame, colname):
         """Cria e retorna o nome de uma coluna numérica convertida a partir de 'colname'."""
         new = f"__num__{colname}"
-        # Converte strings como '-' em NaN, números como '3.5' em float.
         frame[new] = pd.to_numeric(frame[colname], errors="coerce")
         return new
 
@@ -46,17 +45,32 @@ if uploaded_file:
     # Lista de métricas: mantém TODAS as colunas de métricas (não filtra por dtype)
     metric_options = list(df.columns[8:])
 
-    # Pré-seleção "pOil - Min"
-    DEFAULT_METRIC = "pOil - Min"
-    default_idx = metric_options.index(DEFAULT_METRIC) if DEFAULT_METRIC in metric_options else 0
+    # Pré-seleções desejadas
+    preselect_metrics = {
+        1: "pOil - Min",
+        2: "pOil - Max",
+        3: "pOil - Avg",
+        4: "pFuel - Min",
+        5: "pFuel - Max",
+        6: "pFuel - Avg",
+        7: "tWater - Max",
+        8: "VBatt - Min"
+    }
+
+    def get_default_index(metric_name):
+        return metric_options.index(metric_name) if metric_name in metric_options else 0
 
     # Seleção de métricas para Gráficos 1 a 8
-    metric1 = st.sidebar.selectbox("Selecione métrica Gráfico 1:", metric_options, index=default_idx, key="metric_1")
-    metric2 = st.sidebar.selectbox("Selecione métrica Gráfico 2:", metric_options, key="metric_2")
+    metric1 = st.sidebar.selectbox("Selecione métrica Gráfico 1:", metric_options, index=get_default_index(preselect_metrics[1]), key="metric_1")
+    metric2 = st.sidebar.selectbox("Selecione métrica Gráfico 2:", metric_options, index=get_default_index(preselect_metrics[2]), key="metric_2")
+
     extra_metrics = {}
     for i in range(3, 9):
         extra_metrics[i] = st.sidebar.selectbox(
-            f"Selecione métrica Gráfico {i}:", metric_options, key=f"metric_extra_{i}"
+            f"Selecione métrica Gráfico {i}:",
+            metric_options,
+            index=get_default_index(preselect_metrics[i]),
+            key=f"metric_extra_{i}"
         )
 
     # Scatter filters continuam separados
@@ -84,7 +98,6 @@ if uploaded_file:
 
         data = data.copy()
         num_col = as_numeric_column(data, metric)
-        # Gráfico
         fig = px.line(
             data, x="SessionLapDate", y=num_col, color=col_track, markers=True,
             labels={"SessionLapDate": "Date | Run | Lap | Session | Track", num_col: metric, col_track: "Etapa"},
@@ -96,7 +109,6 @@ if uploaded_file:
             xaxis=dict(tickangle=90, tickfont=dict(size=6)),
             yaxis=dict(title_font=dict(size=15))
         )
-        # Estatísticas com a coluna numérica
         vals = data[num_col].dropna()
         if not vals.empty:
             mn, mx = vals.min(), vals.max()
@@ -139,7 +151,6 @@ if uploaded_file:
                         st.info("Sem dados para este gráfico com os filtros atuais.")
                     st.markdown(stats)
                 else:
-                    # Scatter: converter X e Y para numérico na hora do plot
                     if df_disp.empty:
                         st.subheader(title)
                         st.info("Sem dados para o scatter com os filtros atuais.")
