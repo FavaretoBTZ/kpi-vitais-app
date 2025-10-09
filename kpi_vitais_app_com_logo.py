@@ -164,40 +164,33 @@ if uploaded_file:
             return out
 
         # =========================
-        # 8 GRÁFICOS DE LINHA (G1..G8) — cada um com métrica + filtros logo abaixo
+        # 8 GRÁFICOS DE LINHA (G1..G8)
         # =========================
         GRAPH_COUNT = 8
-        # índice default para cada selectbox de métrica (só para conveniência visual)
         default_indices = [i if i < len(metricas) else 0 for i in range(GRAPH_COUNT)]
 
         for i in range(1, GRAPH_COUNT + 1):
-            # Seleção da métrica
-            y_key = f"y{i}"
+            # ---- Sidebar: métrica + filtros logo abaixo
             y_i = st.sidebar.selectbox(
                 f"Métrica para Gráfico {i}:",
                 metricas,
                 index=default_indices[i-1] if metricas else 0,
-                key=y_key
+                key=f"y_{i}"
             )
-
-            # Filtros individuais imediatamente abaixo
-            enable_key = f"enable_driver{i}"
-            enable_driver = st.sidebar.checkbox(f"Filtrar por Driver (G{i})", key=enable_key)
-
+            enable_driver = st.sidebar.checkbox(f"Filtrar por Driver (G{i})", key=f"enable_driver_{i}")
             driver_sel = None
             session_mode = "Todas"
             session_sel = None
-
             if enable_driver:
                 drivers_list = sorted(base[drivername_col].dropna().astype(str).unique())
                 if drivers_list:
-                    driver_sel = st.sidebar.selectbox(f"Driver (G{i}):", drivers_list, key=f"driver{i}")
+                    driver_sel = st.sidebar.selectbox(f"Driver (G{i}):", drivers_list, key=f"driver_{i}")
                     session_mode = st.sidebar.radio(
                         f"Sessões (G{i}):",
                         ["Todas", "Apenas uma"],
                         index=0,
                         horizontal=True,
-                        key=f"sessmode{i}"
+                        key=f"sessmode_{i}"
                     )
                     if session_mode == "Apenas uma":
                         sessions_list = sorted(
@@ -205,32 +198,32 @@ if uploaded_file:
                             .dropna().astype(str).unique()
                         )
                         if sessions_list:
-                            session_sel = st.sidebar.selectbox(f"SessionName (G{i}):", sessions_list, key=f"session{i}")
+                            session_sel = st.sidebar.selectbox(f"SessionName (G{i}):", sessions_list, key=f"session_{i}")
 
-            # Construção do DF do gráfico i
-            df_g = apply_individual_filters(base, driver_sel, session_mode, session_sel)
-            df_g = order_df(df_g)
+            # ---- Corpo: container do gráfico i
+            with st.container():
+                df_g = apply_individual_filters(base, driver_sel, session_mode, session_sel)
+                df_g = order_df(df_g)
 
-            # Plot + métricas
-            if y_i in df_g.columns and not df_g.empty:
-                fig = px.line(
-                    df_g,
-                    x='SessionLapDate',
-                    y=y_i,
-                    color=trackname_col,
-                    markers=True,
-                    title=f"Gráfico {i}"
-                )
-                fig.update_layout(title_font=dict(size=40, color="white"), height=600, legend_title_text=trackname_col)
-                fig.update_xaxes(type='category', categoryorder='array', categoryarray=df_g['SessionLapDate'].tolist())
-                st.plotly_chart(fig, use_container_width=True)
+                if y_i in df_g.columns and not df_g.empty:
+                    fig = px.line(
+                        df_g,
+                        x='SessionLapDate',
+                        y=y_i,
+                        color=trackname_col,
+                        markers=True,
+                        title=f"Gráfico {i}"
+                    )
+                    fig.update_layout(title_font=dict(size=40, color="white"), height=600, legend_title_text=trackname_col)
+                    fig.update_xaxes(type='category', categoryorder='array', categoryarray=df_g['SessionLapDate'].tolist())
+                    st.plotly_chart(fig, use_container_width=True)
 
-                c1, c2, c3 = st.columns(3)
-                with c1: st.metric("Mínimo", f"{pd.to_numeric(df_g[y_i], errors='coerce').min():.2f}")
-                with c2: st.metric("Máximo", f"{pd.to_numeric(df_g[y_i], errors='coerce').max():.2f}")
-                with c3: st.metric("Média",  f"{pd.to_numeric(df_g[y_i], errors='coerce').mean():.2f}")
-            else:
-                st.warning(f"⚠️ Gráfico {i} sem dados para os filtros selecionados ou métrica ausente.")
+                    c1, c2, c3 = st.columns(3)
+                    with c1: st.metric("Mínimo", f"{pd.to_numeric(df_g[y_i], errors='coerce').min():.2f}")
+                    with c2: st.metric("Máximo", f"{pd.to_numeric(df_g[y_i], errors='coerce').max():.2f}")
+                    with c3: st.metric("Média",  f"{pd.to_numeric(df_g[y_i], errors='coerce').mean():.2f}")
+                else:
+                    st.warning(f"⚠️ Gráfico {i} sem dados para os filtros selecionados ou métrica ausente.")
 
         # =========================
         # Dispersão (inalterado)
