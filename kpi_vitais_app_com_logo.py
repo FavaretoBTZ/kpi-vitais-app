@@ -6,11 +6,9 @@ import re
 from difflib import get_close_matches
 
 # =========================
-# Helpers para normalização
+# Helpers de normalização
 # =========================
-_SUFFIXES_TO_STRIP = [
-    "info", "min", "max", "avg", "mean", "median", "std", "ref", "target"
-]
+_SUFFIXES_TO_STRIP = ["info", "min", "max", "avg", "mean", "median", "std", "ref", "target"]
 
 def _normalize(s: str) -> str:
     s = str(s)
@@ -40,7 +38,6 @@ def build_normalized_columns_map(df: pd.DataFrame):
 def resolve_columns(df: pd.DataFrame, required_keys: list[str]) -> dict:
     norm_map = build_normalized_columns_map(df)
     norm_keys_available = list(norm_map.keys())
-
     aliases = {
         "caralias": ["caralias", "car alias", "car", "carro", "vehicle", "car id", "car number", "carno", "n carro"],
         "sessiondate": ["sessiondate", "session date", "date", "data", "session day", "dia", "data sessao"],
@@ -50,12 +47,10 @@ def resolve_columns(df: pd.DataFrame, required_keys: list[str]) -> dict:
         "sessionname": ["sessionname", "session", "nome sessao", "tipo sessao", "session type", "practice", "qualifying", "race"],
         "lap": ["lap", "lapnumber", "lap number", "lap no", "n volta", "volta", "lapcount", "lap idx"],
     }
-
     resolved = {}
     for key in required_keys:
         candidates = [_normalize(key)] + [_normalize(a) for a in aliases.get(key, [])]
         found = None
-
         # 1) direto
         for cand in candidates:
             if cand in norm_map:
@@ -64,23 +59,18 @@ def resolve_columns(df: pd.DataFrame, required_keys: list[str]) -> dict:
         if not found:
             for cand in candidates:
                 hits = [k for k in norm_keys_available if k.startswith(cand + " ")]
-                if hits:
-                    found = norm_map[hits[0]]; break
+                if hits: found = norm_map[hits[0]]; break
             if not found:
                 for cand in candidates:
                     hits = [k for k in norm_keys_available if f" {cand} " in f" {k} "]
-                    if hits:
-                        found = norm_map[hits[0]]; break
+                    if hits: found = norm_map[hits[0]]; break
         # 3) fuzzy
         if not found:
             for cand in candidates:
                 hits = get_close_matches(cand, norm_keys_available, n=1, cutoff=0.7)
-                if hits:
-                    found = norm_map[hits[0]]; break
-
+                if hits: found = norm_map[hits[0]]; break
         if found:
             resolved[key] = found
-
     return resolved
 
 # =========================
@@ -98,8 +88,8 @@ if uploaded_file:
 
     required = ['caralias', 'sessiondate', 'run', 'trackname', 'drivername', 'sessionname', 'lap']
     col_map = resolve_columns(df, required)
-
     missing = [k for k in required if k not in col_map]
+
     if missing:
         st.error("❌ Planilha não contém as colunas obrigatórias:\n" + ", ".join(missing))
         with st.expander("Ver colunas detectadas no arquivo"):
@@ -112,13 +102,12 @@ if uploaded_file:
         trackname_col = col_map['trackname']
         drivername_col = col_map['drivername']
 
-        # Formata sessiondate
+        # SessionLapDate
         if pd.api.types.is_datetime64_any_dtype(df[sessiondate_col]):
             sessiondate_str = df[sessiondate_col].dt.strftime("%Y-%m-%d %H:%M:%S").astype(str)
         else:
             s_try = pd.to_datetime(df[sessiondate_col], errors='coerce')
             sessiondate_str = s_try.dt.strftime("%Y-%m-%d %H:%M:%S").fillna(df[sessiondate_col].astype(str))
-
         df['SessionLapDate'] = (
             sessiondate_str +
             ' | Run ' + df[run_col].astype(str) +
@@ -127,20 +116,18 @@ if uploaded_file:
             ' | Track ' + df[trackname_col].astype(str)
         )
 
-        # =========================
-        # Sidebar - filtros gerais
-        # =========================
+        # ------------- Sidebar: filtros gerais -------------
         st.sidebar.header("Filtros Line Plot")
         car_alias = st.sidebar.selectbox("CarAlias:", sorted(df[col_map['caralias']].dropna().astype(str).unique()))
         tracks = ["TODAS"] + sorted(pd.Series(df[trackname_col].dropna().astype(str).unique()).tolist())
         selected_track = st.sidebar.selectbox("Etapa (TrackName):", tracks)
 
-        # Métricas (todas numéricas extras)
+        # Métricas numéricas válidas
         cols_excluir_reais = [col_map[k] for k in required] + ['SessionLapDate']
         numeric_cols = df.select_dtypes(include='number').columns.tolist()
         metricas = [c for c in numeric_cols if c not in cols_excluir_reais] or numeric_cols
 
-        # Base comum (por CarAlias e Track)
+        # Base comum
         base = df[df[col_map['caralias']].astype(str) == str(car_alias)]
         if selected_track != "TODAS":
             base = base[base[trackname_col].astype(str) == str(selected_track)]
@@ -169,28 +156,31 @@ if uploaded_file:
         GRAPH_COUNT = 8
         default_indices = [i if i < len(metricas) else 0 for i in range(GRAPH_COUNT)]
 
+        # Armazenar configurações selecionadas por gráfico
+        graphs_cfg = []
+
         for i in range(1, GRAPH_COUNT + 1):
-            # ---- Sidebar: métrica + filtros logo abaixo
+            # --- widgets da SIDEBAR para o gráfico i
             y_i = st.sidebar.selectbox(
                 f"Métrica para Gráfico {i}:",
                 metricas,
                 index=default_indices[i-1] if metricas else 0,
-                key=f"y_{i}"
+                key=f"metric_g{i}"
             )
-            enable_driver = st.sidebar.checkbox(f"Filtrar por Driver (G{i})", key=f"enable_driver_{i}")
+            enable_driver = st.sidebar.checkbox(f"Filtrar por Driver (G{i})", key=f"enable_driver_g{i}")
             driver_sel = None
             session_mode = "Todas"
             session_sel = None
             if enable_driver:
                 drivers_list = sorted(base[drivername_col].dropna().astype(str).unique())
                 if drivers_list:
-                    driver_sel = st.sidebar.selectbox(f"Driver (G{i}):", drivers_list, key=f"driver_{i}")
+                    driver_sel = st.sidebar.selectbox(f"Driver (G{i}):", drivers_list, key=f"driver_g{i}")
                     session_mode = st.sidebar.radio(
                         f"Sessões (G{i}):",
                         ["Todas", "Apenas uma"],
                         index=0,
                         horizontal=True,
-                        key=f"sessmode_{i}"
+                        key=f"sessmode_g{i}"
                     )
                     if session_mode == "Apenas uma":
                         sessions_list = sorted(
@@ -198,9 +188,12 @@ if uploaded_file:
                             .dropna().astype(str).unique()
                         )
                         if sessions_list:
-                            session_sel = st.sidebar.selectbox(f"SessionName (G{i}):", sessions_list, key=f"session_{i}")
+                            session_sel = st.sidebar.selectbox(f"SessionName (G{i}):", sessions_list, key=f"session_g{i}")
 
-            # ---- Corpo: container do gráfico i
+            graphs_cfg.append((i, y_i, driver_sel, session_mode, session_sel))
+
+        # --- Render de TODOS os 8 gráficos no corpo ---
+        for (i, y_i, driver_sel, session_mode, session_sel) in graphs_cfg:
             with st.container():
                 df_g = apply_individual_filters(base, driver_sel, session_mode, session_sel)
                 df_g = order_df(df_g)
