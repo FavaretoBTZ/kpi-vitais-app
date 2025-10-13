@@ -138,7 +138,7 @@ if not metric_cols:
     st.error("Não encontrei colunas numéricas úteis para plot.")
     st.stop()
 
-st.subheader("Gráfico KPI Vitais")
+st.subheader("Gráficos KPI Vitais")
 
 # -------- Linha 1 --------
 c1, c2, c3 = st.columns(3)
