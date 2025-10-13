@@ -50,12 +50,7 @@ def load_excel(file):
 EXCLUDE_SUFFIX = re.compile(r"\s-\s?(info|change)$", re.IGNORECASE)
 
 def numeric_metric_columns(df):
-    """
-    Retorna colunas 'numéricas por conteúdo':
-    - exclui auxiliares (*- Info, *- Change)
-    - aceita colunas 'object' que se tornam numéricas com to_numeric
-    - exige pelo menos 1 valor não-NaN após coerção
-    """
+    """Numéricas por conteúdo: exclui auxiliares (*- Info, *- Change) e aceita 'object' que vira numérico."""
     cols = []
     for c in df.columns:
         if c in ["SessionLapDate","SessionDate - Info","Lap - Info"]:
@@ -67,33 +62,20 @@ def numeric_metric_columns(df):
             cols.append(c)
     return cols
 
-def coerce_numeric_for(df, cols):
-    """Converte in-place somente as colunas escolhidas para numérico (sem quebrar outras)."""
+def to_numeric_inplace(df, cols):
     for c in cols:
         if c in df.columns:
             df[c] = pd.to_numeric(df[c], errors="coerce")
 
-def init_defaults_in_state(metric_cols):
-    # defaults linhas (G1..G8)
-    for i, name in enumerate(DEFAULT_LINE_METRICS, start=1):
-        key = f"g{i}_sel"
-        st.session_state.setdefault(key, name if name in metric_cols else metric_cols[0])
-        # Se por algum motivo o valor atual não está mais disponível (após filtro), força fallback
-        if st.session_state[key] not in metric_cols:
-            st.session_state[key] = metric_cols[0]
-    # dispersão
-    st.session_state.setdefault("g9_x", SCATTER_DEFAULT_X if SCATTER_DEFAULT_X in metric_cols else metric_cols[0])
-    st.session_state.setdefault("g9_y", SCATTER_DEFAULT_Y if SCATTER_DEFAULT_Y in metric_cols else metric_cols[0])
-    if st.session_state["g9_x"] not in metric_cols: st.session_state["g9_x"] = metric_cols[0]
-    if st.session_state["g9_y"] not in metric_cols: st.session_state["g9_y"] = metric_cols[0]
+def default_index(options, wanted):
+    return options.index(wanted) if wanted in options and len(options) > 0 else 0
 
 def make_line_plot(df_plot, metric, color_by="SessionDate - Info"):
-    coerce_numeric_for(df_plot, [metric])
+    to_numeric_inplace(df_plot, [metric])
     fig = px.line(
         df_plot, x="SessionLapDate", y=metric,
         color=color_by if color_by in df_plot.columns else None,
-        markers=True,
-        labels={"SessionLapDate":"Session | Lap | Date", metric:metric},
+        markers=True, labels={"SessionLapDate":"Session | Lap | Date", metric:metric},
         title=None
     )
     fig.update_layout(
@@ -104,7 +86,7 @@ def make_line_plot(df_plot, metric, color_by="SessionDate - Info"):
     return fig
 
 def make_scatter_plot(df_plot, x_metric, y_metric, color_by="SessionDate - Info"):
-    coerce_numeric_for(df_plot, [x_metric, y_metric])
+    to_numeric_inplace(df_plot, [x_metric, y_metric])
     fig = px.scatter(
         df_plot, x=x_metric, y=y_metric,
         color=color_by if color_by in df_plot.columns else None,
@@ -138,6 +120,7 @@ df = load_excel(uploaded)
 st.sidebar.header("Filtros")
 car_vals = df["CarAlias - Info"].dropna().unique().tolist() if "CarAlias - Info" in df.columns else []
 car_sel  = st.sidebar.selectbox("Selecione o CarAlias:", car_vals) if car_vals else None
+
 track_vals = df["TrackName - Info"].dropna().unique().tolist() if "TrackName - Info" in df.columns else []
 track_opts = ["Todos"] + track_vals
 track_sel  = st.sidebar.selectbox("TrackName - Info:", track_opts)
@@ -149,75 +132,70 @@ if car_sel is not None and "CarAlias - Info" in fdf.columns:
 if track_sel != "Todos" and "TrackName - Info" in fdf.columns:
     fdf = fdf[fdf["TrackName - Info"] == track_sel]
 
-# Métricas disponíveis + defaults
+# Métricas
 metric_cols = numeric_metric_columns(fdf)
 if not metric_cols:
     st.error("Não encontrei colunas numéricas úteis para plot.")
     st.stop()
-
-init_defaults_in_state(metric_cols)
 
 st.subheader("Painel de 9 Gráficos (3 × 3)")
 
 # -------- Linha 1 --------
 c1, c2, c3 = st.columns(3)
 with c1:
-    st.session_state["g1_sel"] = st.selectbox("Selecione a métrica (Y Axis):", metric_cols,
-                                              index=metric_cols.index(st.session_state["g1_sel"]), key="g1_sel")
-    st.plotly_chart(make_line_plot(fdf, st.session_state["g1_sel"]), use_container_width=True)
-    render_stats(fdf, st.session_state["g1_sel"])
+    sel1 = st.selectbox("Selecione a métrica (Y Axis):", metric_cols,
+                        index=default_index(metric_cols, DEFAULT_LINE_METRICS[0]), key="g1_sel")
+    st.plotly_chart(make_line_plot(fdf, sel1), use_container_width=True)
+    render_stats(fdf, sel1)
 with c2:
-    st.session_state["g2_sel"] = st.selectbox("Selecione a métrica (Y Axis):", metric_cols,
-                                              index=metric_cols.index(st.session_state["g2_sel"]), key="g2_sel")
-    st.plotly_chart(make_line_plot(fdf, st.session_state["g2_sel"]), use_container_width=True)
-    render_stats(fdf, st.session_state["g2_sel"])
+    sel2 = st.selectbox("Selecione a métrica (Y Axis):", metric_cols,
+                        index=default_index(metric_cols, DEFAULT_LINE_METRICS[1]), key="g2_sel")
+    st.plotly_chart(make_line_plot(fdf, sel2), use_container_width=True)
+    render_stats(fdf, sel2)
 with c3:
-    st.session_state["g3_sel"] = st.selectbox("Selecione a métrica (Y Axis):", metric_cols,
-                                              index=metric_cols.index(st.session_state["g3_sel"]), key="g3_sel")
-    st.plotly_chart(make_line_plot(fdf, st.session_state["g3_sel"]), use_container_width=True)
-    render_stats(fdf, st.session_state["g3_sel"])
+    sel3 = st.selectbox("Selecione a métrica (Y Axis):", metric_cols,
+                        index=default_index(metric_cols, DEFAULT_LINE_METRICS[2]), key="g3_sel")
+    st.plotly_chart(make_line_plot(fdf, sel3), use_container_width=True)
+    render_stats(fdf, sel3)
 
 st.divider()
 
 # -------- Linha 2 --------
 c4, c5, c6 = st.columns(3)
 with c4:
-    st.session_state["g4_sel"] = st.selectbox("Selecione a métrica (Y Axis):", metric_cols,
-                                              index=metric_cols.index(st.session_state["g4_sel"]), key="g4_sel")
-    st.plotly_chart(make_line_plot(fdf, st.session_state["g4_sel"]), use_container_width=True)
-    render_stats(fdf, st.session_state["g4_sel"])
+    sel4 = st.selectbox("Selecione a métrica (Y Axis):", metric_cols,
+                        index=default_index(metric_cols, DEFAULT_LINE_METRICS[3]), key="g4_sel")
+    st.plotly_chart(make_line_plot(fdf, sel4), use_container_width=True)
+    render_stats(fdf, sel4)
 with c5:
-    st.session_state["g5_sel"] = st.selectbox("Selecione a métrica (Y Axis):", metric_cols,
-                                              index=metric_cols.index(st.session_state["g5_sel"]), key="g5_sel")
-    st.plotly_chart(make_line_plot(fdf, st.session_state["g5_sel"]), use_container_width=True)
-    render_stats(fdf, st.session_state["g5_sel"])
+    sel5 = st.selectbox("Selecione a métrica (Y Axis):", metric_cols,
+                        index=default_index(metric_cols, DEFAULT_LINE_METRICS[4]), key="g5_sel")
+    st.plotly_chart(make_line_plot(fdf, sel5), use_container_width=True)
+    render_stats(fdf, sel5)
 with c6:
-    st.session_state["g6_sel"] = st.selectbox("Selecione a métrica (Y Axis):", metric_cols,
-                                              index=metric_cols.index(st.session_state["g6_sel"]), key="g6_sel")
-    st.plotly_chart(make_line_plot(fdf, st.session_state["g6_sel"]), use_container_width=True)
-    render_stats(fdf, st.session_state["g6_sel"])
+    sel6 = st.selectbox("Selecione a métrica (Y Axis):", metric_cols,
+                        index=default_index(metric_cols, DEFAULT_LINE_METRICS[5]), key="g6_sel")
+    st.plotly_chart(make_line_plot(fdf, sel6), use_container_width=True)
+    render_stats(fdf, sel6)
 
 st.divider()
 
 # -------- Linha 3 --------
 c7, c8, c9 = st.columns(3)
 with c7:
-    st.session_state["g7_sel"] = st.selectbox("Selecione a métrica (Y Axis):", metric_cols,
-                                              index=metric_cols.index(st.session_state["g7_sel"]), key="g7_sel")
-    st.plotly_chart(make_line_plot(fdf, st.session_state["g7_sel"]), use_container_width=True)
-    render_stats(fdf, st.session_state["g7_sel"])
+    sel7 = st.selectbox("Selecione a métrica (Y Axis):", metric_cols,
+                        index=default_index(metric_cols, DEFAULT_LINE_METRICS[6]), key="g7_sel")
+    st.plotly_chart(make_line_plot(fdf, sel7), use_container_width=True)
+    render_stats(fdf, sel7)
 with c8:
-    st.session_state["g8_sel"] = st.selectbox("Selecione a métrica (Y Axis):", metric_cols,
-                                              index=metric_cols.index(st.session_state["g8_sel"]), key="g8_sel")
-    st.plotly_chart(make_line_plot(fdf, st.session_state["g8_sel"]), use_container_width=True)
-    render_stats(fdf, st.session_state["g8_sel"])
+    sel8 = st.selectbox("Selecione a métrica (Y Axis):", metric_cols,
+                        index=default_index(metric_cols, DEFAULT_LINE_METRICS[7]), key="g8_sel")
+    st.plotly_chart(make_line_plot(fdf, sel8), use_container_width=True)
+    render_stats(fdf, sel8)
 with c9:
-    # Dispersão com defaults
-    left, right = st.columns(2)
-    with left:
-        st.session_state["g9_x"] = st.selectbox("Métrica eixo X:", metric_cols,
-                                                index=metric_cols.index(st.session_state["g9_x"]), key="g9_x")
-    with right:
-        st.session_state["g9_y"] = st.selectbox("Métrica eixo Y:", metric_cols,
-                                                index=metric_cols.index(st.session_state["g9_y"]), key="g9_y")
-    st.plotly_chart(make_scatter_plot(fdf, st.session_state["g9_x"], st.session_state["g9_y"]), use_container_width=True)
+    # Dispersão (X e Y com defaults via index; editáveis se quiser)
+    sx = st.selectbox("Métrica eixo X:", metric_cols,
+                      index=default_index(metric_cols, SCATTER_DEFAULT_X), key="g9_x")
+    sy = st.selectbox("Métrica eixo Y:", metric_cols,
+                      index=default_index(metric_cols, SCATTER_DEFAULT_Y), key="g9_y")
+    st.plotly_chart(make_scatter_plot(fdf, sx, sy), use_container_width=True)
