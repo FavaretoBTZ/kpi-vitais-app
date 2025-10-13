@@ -1,10 +1,6 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-from io import BytesIO
-from matplotlib.backends.backend_pdf import PdfPages
-import matplotlib.pyplot as plt
-from matplotlib.ticker import MaxNLocator
 import numpy as np
 
 st.set_page_config(layout="wide")
@@ -62,7 +58,7 @@ def numeric_metric_columns(df):
             cols.append(c)
     return cols
 
-def make_line_plot(df_plot, metric, color_by):
+def make_line_plot(df_plot, metric, color_by="SessionDate - Info"):
     fig = px.line(
         df_plot, x="SessionLapDate", y=metric,
         color=color_by if color_by in df_plot.columns else None,
@@ -76,7 +72,7 @@ def make_line_plot(df_plot, metric, color_by):
     )
     return fig
 
-def make_scatter_plot(df_plot, x_metric, y_metric, color_by):
+def make_scatter_plot(df_plot, x_metric, y_metric, color_by="SessionDate - Info"):
     fig = px.scatter(
         df_plot, x=x_metric, y=y_metric,
         color=color_by if color_by in df_plot.columns else None,
@@ -90,54 +86,16 @@ def make_scatter_plot(df_plot, x_metric, y_metric, color_by):
     fig.update_traces(mode="markers")
     return fig
 
-def render_card_line(df_plot, metric_options, default_metric_name, key_suffix, color_by, show_stats=True):
-    # seletor individual (default travado para a métrica pedida)
-    idx = metric_options.index(default_metric_name) if default_metric_name in metric_options else 0
-    metric = st.selectbox("Selecione a métrica (Y Axis):", metric_options, index=idx, key=f"metric_{key_suffix}")
-    st.plotly_chart(make_line_plot(df_plot, metric, color_by), use_container_width=True)
-
-    if show_stats:
-        vals = pd.to_numeric(df_plot[metric], errors="coerce")
-        cmin, cmax, cavg = np.nanmin(vals), np.nanmax(vals), np.nanmean(vals)
-        c1, c2, c3 = st.columns(3)
-        with c1:
-            st.caption("**Mínimo**"); st.markdown(f"**{cmin:.3f}**")
-        with c2:
-            st.caption("**Máximo**"); st.markdown(f"**{cmax:.3f}**")
-        with c3:
-            st.caption("**Média**");  st.markdown(f"**{cavg:.3f}**")
-
-def render_card_scatter(df_plot, metric_options, default_x, default_y, key_suffix, color_by):
-    ix = metric_options.index(default_x) if default_x in metric_options else 0
-    iy = metric_options.index(default_y) if default_y in metric_options else 0
-    colx, coly = st.columns(2)
-    with colx:
-        x_metric = st.selectbox("Métrica eixo X:", metric_options, index=ix, key=f"scatter_x_{key_suffix}")
-    with coly:
-        y_metric = st.selectbox("Métrica eixo Y:", metric_options, index=iy, key=f"scatter_y_{key_suffix}")
-    st.plotly_chart(make_scatter_plot(df_plot, x_metric, y_metric, color_by), use_container_width=True)
-
-def export_pdf(filtered_df, metrics, group_col, car_alias):
-    buf = BytesIO()
-    with PdfPages(buf) as pdf:
-        for metric in metrics:
-            plt.figure(figsize=(14,7))
-            if group_col in filtered_df.columns:
-                groups = filtered_df.groupby(group_col, dropna=False)
-            else:
-                groups = [("All", filtered_df)]
-            for name, group in (groups if hasattr(groups,"groups") else groups):
-                y = pd.to_numeric(group[metric], errors="coerce")
-                x = group["SessionLapDate"].astype(str)
-                plt.plot(x, y, marker="o", label=str(name))
-            plt.title(f"{metric} por Session/Lap/Date")
-            plt.xlabel("Session | Lap | Date"); plt.ylabel(metric)
-            plt.xticks(rotation=90); plt.grid(axis="y")
-            plt.legend(title=(group_col or "Grupo").replace(" - Info",""))
-            plt.gca().xaxis.set_major_locator(MaxNLocator(18))
-            plt.tight_layout(); pdf.savefig(); plt.close()
-    buf.seek(0)
-    return buf, f"{car_alias or 'AllCars'}_KPIs.pdf"
+def render_stats(df_plot, col_name):
+    vals = pd.to_numeric(df_plot[col_name], errors="coerce")
+    cmin, cmax, cavg = np.nanmin(vals), np.nanmax(vals), np.nanmean(vals)
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        st.caption("**Mínimo**"); st.markdown(f"**{cmin:.3f}**")
+    with c2:
+        st.caption("**Máximo**"); st.markdown(f"**{cmax:.3f}**")
+    with c3:
+        st.caption("**Média**");  st.markdown(f"**{cavg:.3f}**")
 
 # ---------- UI ----------
 uploaded = st.file_uploader("Escolha a planilha KPI VITAIS:", type=["xlsx"])
@@ -147,83 +105,86 @@ if not uploaded:
 
 df = load_excel(uploaded)
 
-# Filtros globais
+# ===== Sidebar mínima =====
 st.sidebar.header("Filtros")
+# CarAlias
 car_vals = df["CarAlias - Info"].dropna().unique().tolist() if "CarAlias - Info" in df.columns else []
 car_sel  = st.sidebar.selectbox("Selecione o CarAlias:", car_vals) if car_vals else None
 
-sess_vals = df["SessionName - Info"].dropna().unique().tolist() if "SessionName - Info" in df.columns else []
-sess_sel  = st.sidebar.multiselect("Filtrar por SessionName (opcional):", sess_vals, default=sess_vals)
+# TrackName com opção "Todos"
+track_vals = df["TrackName - Info"].dropna().unique().tolist() if "TrackName - Info" in df.columns else []
+track_opts = ["Todos"] + track_vals
+track_sel  = st.sidebar.selectbox("TrackName - Info:", track_opts)
 
-drv_vals = df["DriverName - Info"].dropna().unique().tolist() if "DriverName - Info" in df.columns else []
-drv_sel  = st.sidebar.multiselect("Filtrar por Driver (opcional):", drv_vals, default=drv_vals)
-
-color_options = [c for c in ["SessionDate - Info","SessionName - Info","DriverName - Info"] if c in df.columns]
-color_by = st.sidebar.selectbox("Agrupar por (legenda) nos gráficos:", color_options) if color_options else None
-
-# Aplica filtros
+# ===== Aplica filtros =====
 fdf = df.copy()
 if car_sel is not None and "CarAlias - Info" in fdf.columns:
     fdf = fdf[fdf["CarAlias - Info"] == car_sel]
-if sess_sel and "SessionName - Info" in fdf.columns:
-    fdf = fdf[fdf["SessionName - Info"].isin(sess_sel)]
-if drv_sel and "DriverName - Info" in fdf.columns:
-    fdf = fdf[fdf["DriverName - Info"].isin(drv_sel)]
+if track_sel != "Todos" and "TrackName - Info" in fdf.columns:
+    fdf = fdf[fdf["TrackName - Info"] == track_sel]
 
-# Métricas disponíveis
+# Métricas disponíveis e defaults (com fallback)
 metric_cols = numeric_metric_columns(fdf)
 if not metric_cols:
     st.error("Não encontrei colunas numéricas para plot.")
     st.stop()
-
-# Garantir que os defaults existam (fallback para a 1ª métrica numérica)
 line_defaults = [m if m in metric_cols else metric_cols[0] for m in DEFAULT_LINE_METRICS]
-scatter_default_x = SCATTER_DEFAULT_X if SCATTER_DEFAULT_X in metric_cols else metric_cols[0]
-scatter_default_y = SCATTER_DEFAULT_Y if SCATTER_DEFAULT_Y in metric_cols else metric_cols[0]
+scatter_x = SCATTER_DEFAULT_X if SCATTER_DEFAULT_X in metric_cols else metric_cols[0]
+scatter_y = SCATTER_DEFAULT_Y if SCATTER_DEFAULT_Y in metric_cols else metric_cols[0]
 
 st.subheader("Painel de 9 Gráficos (3 × 3)")
 
 # -------- Linha 1 --------
 c1, c2, c3 = st.columns(3)
 with c1:
-    render_card_line(fdf, metric_cols, line_defaults[0], "g1", color_by)
+    st.selectbox("Selecione a métrica (Y Axis):", metric_cols, index=metric_cols.index(line_defaults[0]), key="g1_sel", disabled=False)
+    st.plotly_chart(make_line_plot(fdf, st.session_state["g1_sel"]), use_container_width=True)
+    render_stats(fdf, st.session_state["g1_sel"])
 with c2:
-    render_card_line(fdf, metric_cols, line_defaults[1], "g2", color_by)
+    st.selectbox("Selecione a métrica (Y Axis):", metric_cols, index=metric_cols.index(line_defaults[1]), key="g2_sel", disabled=False)
+    st.plotly_chart(make_line_plot(fdf, st.session_state["g2_sel"]), use_container_width=True)
+    render_stats(fdf, st.session_state["g2_sel"])
 with c3:
-    render_card_line(fdf, metric_cols, line_defaults[2], "g3", color_by)
+    st.selectbox("Selecione a métrica (Y Axis):", metric_cols, index=metric_cols.index(line_defaults[2]), key="g3_sel", disabled=False)
+    st.plotly_chart(make_line_plot(fdf, st.session_state["g3_sel"]), use_container_width=True)
+    render_stats(fdf, st.session_state["g3_sel"])
 
 st.divider()
 
 # -------- Linha 2 --------
 c4, c5, c6 = st.columns(3)
 with c4:
-    render_card_line(fdf, metric_cols, line_defaults[3], "g4", color_by)
+    st.selectbox("Selecione a métrica (Y Axis):", metric_cols, index=metric_cols.index(line_defaults[3]), key="g4_sel")
+    st.plotly_chart(make_line_plot(fdf, st.session_state["g4_sel"]), use_container_width=True)
+    render_stats(fdf, st.session_state["g4_sel"])
 with c5:
-    render_card_line(fdf, metric_cols, line_defaults[4], "g5", color_by)
+    st.selectbox("Selecione a métrica (Y Axis):", metric_cols, index=metric_cols.index(line_defaults[4]), key="g5_sel")
+    st.plotly_chart(make_line_plot(fdf, st.session_state["g5_sel"]), use_container_width=True)
+    render_stats(fdf, st.session_state["g5_sel"])
 with c6:
-    render_card_line(fdf, metric_cols, line_defaults[5], "g6", color_by)
+    st.selectbox("Selecione a métrica (Y Axis):", metric_cols, index=metric_cols.index(line_defaults[5]), key="g6_sel")
+    st.plotly_chart(make_line_plot(fdf, st.session_state["g6_sel"]), use_container_width=True)
+    render_stats(fdf, st.session_state["g6_sel"])
 
 st.divider()
 
 # -------- Linha 3 --------
 c7, c8, c9 = st.columns(3)
 with c7:
-    render_card_line(fdf, metric_cols, line_defaults[6], "g7", color_by)
+    st.selectbox("Selecione a métrica (Y Axis):", metric_cols, index=metric_cols.index(line_defaults[6]), key="g7_sel")
+    st.plotly_chart(make_line_plot(fdf, st.session_state["g7_sel"]), use_container_width=True)
+    render_stats(fdf, st.session_state["g7_sel"])
 with c8:
-    render_card_line(fdf, metric_cols, line_defaults[7], "g8", color_by)
+    st.selectbox("Selecione a métrica (Y Axis):", metric_cols, index=metric_cols.index(line_defaults[7]), key="g8_sel")
+    st.plotly_chart(make_line_plot(fdf, st.session_state["g8_sel"]), use_container_width=True)
+    render_stats(fdf, st.session_state["g8_sel"])
 with c9:
-    # Dispersão (X e Y travados por padrão)
-    render_card_scatter(fdf, metric_cols, scatter_default_x, scatter_default_y, "g9", color_by)
-
-# -------- Exportar PDF (apenas linhas; dispersão fica fora para não confundir) --------
-st.sidebar.subheader("Exportar Gráficos em PDF")
-export_metrics = st.sidebar.multiselect(
-    "Selecione métricas (linhas) para exportar:",
-    metric_cols, default=line_defaults
-)
-group_for_pdf = st.sidebar.selectbox("Legenda do PDF (agrupamento):", color_options if color_options else ["(sem)"])
-group_for_pdf = group_for_pdf if group_for_pdf in fdf.columns else None
-
-if st.sidebar.button("Exportar PDF"):
-    pdf_bytes, pdf_name = export_pdf(fdf, export_metrics, group_for_pdf, car_sel)
-    st.sidebar.download_button("Baixar PDF", data=pdf_bytes, file_name=pdf_name, mime="application/pdf")
+    # Dispersão (X e Y travados por padrão, mas ainda editáveis se quiser)
+    ix = metric_cols.index(scatter_x)
+    iy = metric_cols.index(scatter_y)
+    cx, cy = st.columns(2)
+    with cx:
+        st.selectbox("Métrica eixo X:", metric_cols, index=ix, key="g9_x")
+    with cy:
+        st.selectbox("Métrica eixo Y:", metric_cols, index=iy, key="g9_y")
+    st.plotly_chart(make_scatter_plot(fdf, st.session_state["g9_x"], st.session_state["g9_y"]), use_container_width=True)
