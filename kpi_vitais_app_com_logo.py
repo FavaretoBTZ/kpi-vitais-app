@@ -5,7 +5,7 @@ import numpy as np
 import re
 
 st.set_page_config(layout="wide")
-st.title("KPI VITAIS - Painel 3×3")
+st.title("KPI VITAIS - BTZ|Motorsport")
 
 # ---------- Defaults pedidos ----------
 DEFAULT_LINE_METRICS = [
