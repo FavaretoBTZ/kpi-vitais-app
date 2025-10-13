@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import numpy as np
+import re
 
 st.set_page_config(layout="wide")
 st.title("KPI VITAIS - Painel 3×3")
@@ -30,33 +31,49 @@ def to_datetime_safe(s):
 @st.cache_data(show_spinner=False)
 def load_excel(file):
     df = pd.read_excel(file)
-
-    # Tipos essenciais
     if "SessionDate - Info" in df.columns:
         df["SessionDate - Info"] = to_datetime_safe(df["SessionDate - Info"])
     if "Lap - Info" in df.columns:
         df["Lap - Info"] = pd.to_numeric(df["Lap - Info"], errors="coerce")
 
-    # Eixo X composto
     date_str = df["SessionDate - Info"].dt.strftime("%Y-%m-%d %H:%M").fillna("NA") if "SessionDate - Info" in df.columns else "NA"
     lap_str  = df["Lap - Info"].fillna("").astype(str) if "Lap - Info" in df.columns else "NA"
     sess     = df["SessionName - Info"].astype(str) if "SessionName - Info" in df.columns else "NA"
     df["SessionLapDate"] = sess + " | Lap " + lap_str + " | " + date_str
 
-    # Ordenar
     sort_keys = [c for c in ["SessionDate - Info","SessionName - Info","Lap - Info"] if c in df.columns]
     if sort_keys:
         df = df.sort_values(by=sort_keys, kind="mergesort").reset_index(drop=True)
     return df
 
 def numeric_metric_columns(df):
+    """Retorna apenas colunas numéricas úteis (exclui auxiliares e sufixo '- info')."""
     cols = []
     for c in df.columns:
-        if c in ["SessionLapDate","SessionDate - Info"]:
+        if c in ["SessionLapDate","SessionDate - Info","Lap - Info"]:
+            continue
+        if re.search(r"\s-\s?info$", c, flags=re.IGNORECASE):
+            # exclui qualquer '... - info' numérico (ex.: DataSet - info)
             continue
         if pd.api.types.is_numeric_dtype(df[c]):
             cols.append(c)
     return cols
+
+def init_defaults_in_state(metric_cols):
+    """Força os 9 gráficos a iniciarem nas métricas padrão solicitadas."""
+    # linhas
+    for i, name in enumerate(DEFAULT_LINE_METRICS, start=1):
+        key = f"g{i}_sel"
+        default_metric = name if name in metric_cols else metric_cols[0]
+        if key not in st.session_state or st.session_state[key] not in metric_cols:
+            st.session_state[key] = default_metric
+    # dispersão
+    x_def = SCATTER_DEFAULT_X if SCATTER_DEFAULT_X in metric_cols else metric_cols[0]
+    y_def = SCATTER_DEFAULT_Y if SCATTER_DEFAULT_Y in metric_cols else metric_cols[0]
+    if "g9_x" not in st.session_state or st.session_state["g9_x"] not in metric_cols:
+        st.session_state["g9_x"] = x_def
+    if "g9_y" not in st.session_state or st.session_state["g9_y"] not in metric_cols:
+        st.session_state["g9_y"] = y_def
 
 def make_line_plot(df_plot, metric, color_by="SessionDate - Info"):
     fig = px.line(
@@ -107,11 +124,9 @@ df = load_excel(uploaded)
 
 # ===== Sidebar mínima =====
 st.sidebar.header("Filtros")
-# CarAlias
 car_vals = df["CarAlias - Info"].dropna().unique().tolist() if "CarAlias - Info" in df.columns else []
 car_sel  = st.sidebar.selectbox("Selecione o CarAlias:", car_vals) if car_vals else None
 
-# TrackName com opção "Todos"
 track_vals = df["TrackName - Info"].dropna().unique().tolist() if "TrackName - Info" in df.columns else []
 track_opts = ["Todos"] + track_vals
 track_sel  = st.sidebar.selectbox("TrackName - Info:", track_opts)
@@ -123,29 +138,31 @@ if car_sel is not None and "CarAlias - Info" in fdf.columns:
 if track_sel != "Todos" and "TrackName - Info" in fdf.columns:
     fdf = fdf[fdf["TrackName - Info"] == track_sel]
 
-# Métricas disponíveis e defaults (com fallback)
+# ===== Métricas e init de defaults =====
 metric_cols = numeric_metric_columns(fdf)
 if not metric_cols:
-    st.error("Não encontrei colunas numéricas para plot.")
+    st.error("Não encontrei colunas numéricas úteis para plot.")
     st.stop()
-line_defaults = [m if m in metric_cols else metric_cols[0] for m in DEFAULT_LINE_METRICS]
-scatter_x = SCATTER_DEFAULT_X if SCATTER_DEFAULT_X in metric_cols else metric_cols[0]
-scatter_y = SCATTER_DEFAULT_Y if SCATTER_DEFAULT_Y in metric_cols else metric_cols[0]
+
+init_defaults_in_state(metric_cols)  # <-- força G1 = "pOil - Min" e demais defaults
 
 st.subheader("Painel de 9 Gráficos (3 × 3)")
 
 # -------- Linha 1 --------
 c1, c2, c3 = st.columns(3)
 with c1:
-    st.selectbox("Selecione a métrica (Y Axis):", metric_cols, index=metric_cols.index(line_defaults[0]), key="g1_sel", disabled=False)
+    st.selectbox("Selecione a métrica (Y Axis):", metric_cols,
+                 index=metric_cols.index(st.session_state["g1_sel"]), key="g1_sel")
     st.plotly_chart(make_line_plot(fdf, st.session_state["g1_sel"]), use_container_width=True)
     render_stats(fdf, st.session_state["g1_sel"])
 with c2:
-    st.selectbox("Selecione a métrica (Y Axis):", metric_cols, index=metric_cols.index(line_defaults[1]), key="g2_sel", disabled=False)
+    st.selectbox("Selecione a métrica (Y Axis):", metric_cols,
+                 index=metric_cols.index(st.session_state["g2_sel"]), key="g2_sel")
     st.plotly_chart(make_line_plot(fdf, st.session_state["g2_sel"]), use_container_width=True)
     render_stats(fdf, st.session_state["g2_sel"])
 with c3:
-    st.selectbox("Selecione a métrica (Y Axis):", metric_cols, index=metric_cols.index(line_defaults[2]), key="g3_sel", disabled=False)
+    st.selectbox("Selecione a métrica (Y Axis):", metric_cols,
+                 index=metric_cols.index(st.session_state["g3_sel"]), key="g3_sel")
     st.plotly_chart(make_line_plot(fdf, st.session_state["g3_sel"]), use_container_width=True)
     render_stats(fdf, st.session_state["g3_sel"])
 
@@ -154,15 +171,18 @@ st.divider()
 # -------- Linha 2 --------
 c4, c5, c6 = st.columns(3)
 with c4:
-    st.selectbox("Selecione a métrica (Y Axis):", metric_cols, index=metric_cols.index(line_defaults[3]), key="g4_sel")
+    st.selectbox("Selecione a métrica (Y Axis):", metric_cols,
+                 index=metric_cols.index(st.session_state["g4_sel"]), key="g4_sel")
     st.plotly_chart(make_line_plot(fdf, st.session_state["g4_sel"]), use_container_width=True)
     render_stats(fdf, st.session_state["g4_sel"])
 with c5:
-    st.selectbox("Selecione a métrica (Y Axis):", metric_cols, index=metric_cols.index(line_defaults[4]), key="g5_sel")
+    st.selectbox("Selecione a métrica (Y Axis):", metric_cols,
+                 index=metric_cols.index(st.session_state["g5_sel"]), key="g5_sel")
     st.plotly_chart(make_line_plot(fdf, st.session_state["g5_sel"]), use_container_width=True)
     render_stats(fdf, st.session_state["g5_sel"])
 with c6:
-    st.selectbox("Selecione a métrica (Y Axis):", metric_cols, index=metric_cols.index(line_defaults[5]), key="g6_sel")
+    st.selectbox("Selecione a métrica (Y Axis):", metric_cols,
+                 index=metric_cols.index(st.session_state["g6_sel"]), key="g6_sel")
     st.plotly_chart(make_line_plot(fdf, st.session_state["g6_sel"]), use_container_width=True)
     render_stats(fdf, st.session_state["g6_sel"])
 
@@ -171,20 +191,22 @@ st.divider()
 # -------- Linha 3 --------
 c7, c8, c9 = st.columns(3)
 with c7:
-    st.selectbox("Selecione a métrica (Y Axis):", metric_cols, index=metric_cols.index(line_defaults[6]), key="g7_sel")
+    st.selectbox("Selecione a métrica (Y Axis):", metric_cols,
+                 index=metric_cols.index(st.session_state["g7_sel"]), key="g7_sel")
     st.plotly_chart(make_line_plot(fdf, st.session_state["g7_sel"]), use_container_width=True)
     render_stats(fdf, st.session_state["g7_sel"])
 with c8:
-    st.selectbox("Selecione a métrica (Y Axis):", metric_cols, index=metric_cols.index(line_defaults[7]), key="g8_sel")
+    st.selectbox("Selecione a métrica (Y Axis):", metric_cols,
+                 index=metric_cols.index(st.session_state["g8_sel"]), key="g8_sel")
     st.plotly_chart(make_line_plot(fdf, st.session_state["g8_sel"]), use_container_width=True)
     render_stats(fdf, st.session_state["g8_sel"])
 with c9:
-    # Dispersão (X e Y travados por padrão, mas ainda editáveis se quiser)
-    ix = metric_cols.index(scatter_x)
-    iy = metric_cols.index(scatter_y)
+    # Dispersão com defaults forçados
     cx, cy = st.columns(2)
     with cx:
-        st.selectbox("Métrica eixo X:", metric_cols, index=ix, key="g9_x")
+        st.selectbox("Métrica eixo X:", metric_cols,
+                     index=metric_cols.index(st.session_state["g9_x"]), key="g9_x")
     with cy:
-        st.selectbox("Métrica eixo Y:", metric_cols, index=iy, key="g9_y")
+        st.selectbox("Métrica eixo Y:", metric_cols,
+                     index=metric_cols.index(st.session_state["g9_y"]), key="g9_y")
     st.plotly_chart(make_scatter_plot(fdf, st.session_state["g9_x"], st.session_state["g9_y"]), use_container_width=True)
