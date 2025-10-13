@@ -5,11 +5,12 @@ from io import BytesIO
 from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
+import numpy as np
 
 st.set_page_config(layout="wide")
-st.title("KPI VITAIS - Análise Dinâmica")
+st.title("KPI VITAIS - Painel 3×3")
 
-# ---------- Helpers ----------
+# ---------------- Helpers ----------------
 DEFAULT_METRICS = [
     "LapTime - Info",
     "Full_Brake_intg -Max",
@@ -37,28 +38,24 @@ def load_excel(file):
     if "Lap - Info" in df.columns:
         df["Lap - Info"] = pd.to_numeric(df["Lap - Info"], errors="coerce")
 
-    # Eixo X composto
     date_str = df["SessionDate - Info"].dt.strftime("%Y-%m-%d %H:%M").fillna("NA") if "SessionDate - Info" in df.columns else "NA"
-    lap_str = df["Lap - Info"].fillna("").astype(str) if "Lap - Info" in df.columns else "NA"
-    sess    = df["SessionName - Info"].astype(str) if "SessionName - Info" in df.columns else "NA"
+    lap_str  = df["Lap - Info"].fillna("").astype(str) if "Lap - Info" in df.columns else "NA"
+    sess     = df["SessionName - Info"].astype(str) if "SessionName - Info" in df.columns else "NA"
     df["SessionLapDate"] = sess + " | Lap " + lap_str + " | " + date_str
 
-    # Ordenação consistente
     sort_keys = [c for c in ["SessionDate - Info","SessionName - Info","Lap - Info"] if c in df.columns]
     if sort_keys:
         df = df.sort_values(by=sort_keys, kind="mergesort").reset_index(drop=True)
-
     return df
 
 def numeric_metric_columns(df):
-    # considera colunas numéricas para plot (exclui auxiliares)
-    candidates = []
-    for col in df.columns:
-        if col in ["SessionLapDate","SessionDate - Info"]:
+    cols = []
+    for c in df.columns:
+        if c in ["SessionLapDate","SessionDate - Info"]:
             continue
-        if pd.api.types.is_numeric_dtype(df[col]):
-            candidates.append(col)
-    return candidates
+        if pd.api.types.is_numeric_dtype(df[c]):
+            cols.append(c)
+    return cols
 
 def make_plot(df_plot, metric, color_by):
     fig = px.line(
@@ -68,17 +65,49 @@ def make_plot(df_plot, metric, color_by):
         color=color_by if color_by in df_plot.columns else None,
         markers=True,
         labels={"SessionLapDate":"Session | Lap | Date", metric:metric},
-        title=f"{metric} por Session/Lap/Date"
+        title=None
     )
     fig.update_layout(
         xaxis_tickangle=90,
-        xaxis_title="Session | Lap | Date",
+        xaxis_title=None,
         yaxis_title=metric,
         legend_title=(color_by or "Grupo").replace(" - Info",""),
-        height=420,  # altura menor para caber 3×3 confortavelmente
-        margin=dict(l=10, r=10, t=50, b=10)
+        height=360,
+        margin=dict(l=6, r=6, t=10, b=10)
     )
     return fig
+
+def render_card(df_plot, metric_options, default_metric_name, idx_key, color_by):
+    # seletor individual
+    if default_metric_name in metric_options:
+        default_index = metric_options.index(default_metric_name)
+    else:
+        default_index = 0
+
+    metric = st.selectbox(
+        "Selecione a métrica (Y Axis):",
+        metric_options,
+        index=default_index,
+        key=f"metric_{idx_key}"
+    )
+
+    # gráfico
+    fig = make_plot(df_plot, metric, color_by)
+    st.plotly_chart(fig, use_container_width=True)
+
+    # stats (como na imagem: Mínimo, Máximo, Média)
+    vals = pd.to_numeric(df_plot[metric], errors="coerce")
+    cmin, cmax, cavg = np.nanmin(vals), np.nanmax(vals), np.nanmean(vals)
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        st.caption("**Mínimo**")
+        st.markdown(f"**{cmin:.3f}**")
+    with c2:
+        st.caption("**Máximo**")
+        st.markdown(f"**{cmax:.3f}**")
+    with c3:
+        st.caption("**Média**")
+        st.markdown(f"**{cavg:.3f}**")
 
 def export_pdf(filtered_df, metrics, group_col, car_alias):
     buf = BytesIO()
@@ -89,7 +118,7 @@ def export_pdf(filtered_df, metrics, group_col, car_alias):
                 groups = filtered_df.groupby(group_col, dropna=False)
             else:
                 groups = [("All", filtered_df)]
-            for name, group in (groups if hasattr(groups,"groups") else groups):
+            for name, group in (groups if hasattr(groups, "groups") else groups):
                 y = pd.to_numeric(group[metric], errors="coerce")
                 x = group["SessionLapDate"].astype(str)
                 plt.plot(x, y, marker="o", label=str(name))
@@ -106,16 +135,15 @@ def export_pdf(filtered_df, metrics, group_col, car_alias):
     buf.seek(0)
     return buf, f"{car_alias or 'AllCars'}_KPIs.pdf"
 
-# ---------- UI ----------
+# ---------------- UI ----------------
 uploaded = st.file_uploader("Escolha a planilha KPI VITAIS:", type=["xlsx"])
-
 if not uploaded:
     st.info("Envie o arquivo para iniciar a análise.")
     st.stop()
 
 df = load_excel(uploaded)
 
-# Sidebar — filtros globais e agrupamento (legenda) compartilhado
+# Filtros globais
 st.sidebar.header("Filtros")
 car_values = df["CarAlias - Info"].dropna().unique().tolist() if "CarAlias - Info" in df.columns else []
 car_sel = st.sidebar.selectbox("Selecione o CarAlias:", car_values) if car_values else None
@@ -129,7 +157,7 @@ drv_sel = st.sidebar.multiselect("Filtrar por Driver (opcional):", drv_values, d
 color_options = [c for c in ["SessionDate - Info","SessionName - Info","DriverName - Info"] if c in df.columns]
 color_by = st.sidebar.selectbox("Agrupar por (legenda) nos gráficos:", color_options) if color_options else None
 
-# Aplica filtros
+# aplica filtros
 fdf = df.copy()
 if car_sel is not None and "CarAlias - Info" in fdf.columns:
     fdf = fdf[fdf["CarAlias - Info"] == car_sel]
@@ -138,66 +166,49 @@ if sess_sel and "SessionName - Info" in fdf.columns:
 if drv_sel and "DriverName - Info" in fdf.columns:
     fdf = fdf[fdf["DriverName - Info"].isin(drv_sel)]
 
-# Candidatas de métrica
+# métricas possíveis
 metric_cols = numeric_metric_columns(fdf)
 if not metric_cols:
     st.error("Não encontrei colunas numéricas para plot.")
     st.stop()
 
-# Define as 9 métricas padrão (usa fallback se alguma não existir)
-defaults = []
-for name in DEFAULT_METRICS:
-    defaults.append(name if name in metric_cols else metric_cols[0])
+# defaults (com fallback)
+defaults = [m if m in metric_cols else metric_cols[0] for m in DEFAULT_METRICS]
 
 st.subheader("Painel de 9 Gráficos (3 × 3)")
 
-# ------ Linha 1 ------
-row1 = st.container()
-with row1:
-    c1, c2, c3 = st.columns(3)
-    with c1:
-        m1 = st.selectbox("Selecione a métrica (Y Axis) — Gráfico 1", metric_cols, index=metric_cols.index(defaults[0]), key="m1")
-        st.plotly_chart(make_plot(fdf, m1, color_by), use_container_width=True)
-    with c2:
-        m2 = st.selectbox("Selecione a métrica (Y Axis) — Gráfico 2", metric_cols, index=metric_cols.index(defaults[1]), key="m2")
-        st.plotly_chart(make_plot(fdf, m2, color_by), use_container_width=True)
-    with c3:
-        m3 = st.selectbox("Selecione a métrica (Y Axis) — Gráfico 3", metric_cols, index=metric_cols.index(defaults[2]), key="m3")
-        st.plotly_chart(make_plot(fdf, m3, color_by), use_container_width=True)
+# -------- Linha 1 (3 gráficos) --------
+c1, c2, c3 = st.columns(3)
+with c1:
+    render_card(fdf, metric_cols, defaults[0], 1, color_by)
+with c2:
+    render_card(fdf, metric_cols, defaults[1], 2, color_by)
+with c3:
+    render_card(fdf, metric_cols, defaults[2], 3, color_by)
 
 st.divider()
 
-# ------ Linha 2 ------
-row2 = st.container()
-with row2:
-    c4, c5, c6 = st.columns(3)
-    with c4:
-        m4 = st.selectbox("Selecione a métrica (Y Axis) — Gráfico 4", metric_cols, index=metric_cols.index(defaults[3]), key="m4")
-        st.plotly_chart(make_plot(fdf, m4, color_by), use_container_width=True)
-    with c5:
-        m5 = st.selectbox("Selecione a métrica (Y Axis) — Gráfico 5", metric_cols, index=metric_cols.index(defaults[4]), key="m5")
-        st.plotly_chart(make_plot(fdf, m5, color_by), use_container_width=True)
-    with c6:
-        m6 = st.selectbox("Selecione a métrica (Y Axis) — Gráfico 6", metric_cols, index=metric_cols.index(defaults[5]), key="m6")
-        st.plotly_chart(make_plot(fdf, m6, color_by), use_container_width=True)
+# -------- Linha 2 (3 gráficos) --------
+c4, c5, c6 = st.columns(3)
+with c4:
+    render_card(fdf, metric_cols, defaults[3], 4, color_by)
+with c5:
+    render_card(fdf, metric_cols, defaults[4], 5, color_by)
+with c6:
+    render_card(fdf, metric_cols, defaults[5], 6, color_by)
 
 st.divider()
 
-# ------ Linha 3 ------
-row3 = st.container()
-with row3:
-    c7, c8, c9 = st.columns(3)
-    with c7:
-        m7 = st.selectbox("Selecione a métrica (Y Axis) — Gráfico 7", metric_cols, index=metric_cols.index(defaults[6]), key="m7")
-        st.plotly_chart(make_plot(fdf, m7, color_by), use_container_width=True)
-    with c8:
-        m8 = st.selectbox("Selecione a métrica (Y Axis) — Gráfico 8", metric_cols, index=metric_cols.index(defaults[7]), key="m8")
-        st.plotly_chart(make_plot(fdf, m8, color_by), use_container_width=True)
-    with c9:
-        m9 = st.selectbox("Selecione a métrica (Y Axis) — Gráfico 9", metric_cols, index=metric_cols.index(defaults[8]), key="m9")
-        st.plotly_chart(make_plot(fdf, m9, color_by), use_container_width=True)
+# -------- Linha 3 (3 gráficos) --------
+c7, c8, c9 = st.columns(3)
+with c7:
+    render_card(fdf, metric_cols, defaults[6], 7, color_by)
+with c8:
+    render_card(fdf, metric_cols, defaults[7], 8, color_by)
+with c9:
+    render_card(fdf, metric_cols, defaults[8], 9, color_by)
 
-# ------ Exportar PDF ------
+# -------- Exportar PDF --------
 st.sidebar.subheader("Exportar Gráficos em PDF")
 export_metrics = st.sidebar.multiselect("Selecione métricas para exportar:", metric_cols, default=list(dict.fromkeys(defaults)))
 group_for_pdf = st.sidebar.selectbox("Legenda do PDF (agrupamento):", color_options if color_options else ["(sem)"])
