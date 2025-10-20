@@ -70,7 +70,8 @@ def to_numeric_inplace(df, cols):
 def default_index(options, wanted):
     return options.index(wanted) if wanted in options and len(options) > 0 else 0
 
-def make_line_plot(df_plot, metric, color_by="SessionDate - Info"):
+# >>>>>>>> ALTERAÇÃO AQUI: legenda colorida por TrackName - Info <<<<<<<<
+def make_line_plot(df_plot, metric, color_by="TrackName - Info"):
     to_numeric_inplace(df_plot, [metric])
     fig = px.line(
         df_plot, x="SessionLapDate", y=metric,
@@ -85,7 +86,7 @@ def make_line_plot(df_plot, metric, color_by="SessionDate - Info"):
     )
     return fig
 
-def make_scatter_plot(df_plot, x_metric, y_metric, color_by="SessionDate - Info"):
+def make_scatter_plot(df_plot, x_metric, y_metric, color_by="TrackName - Info"):
     to_numeric_inplace(df_plot, [x_metric, y_metric])
     fig = px.scatter(
         df_plot, x=x_metric, y=y_metric,
@@ -193,7 +194,6 @@ with c8:
     st.plotly_chart(make_line_plot(fdf, sel8), use_container_width=True)
     render_stats(fdf, sel8)
 with c9:
-    # Dispersão (X e Y com defaults via index; editáveis se quiser)
     sx = st.selectbox("Métrica eixo X:", metric_cols,
                       index=default_index(metric_cols, SCATTER_DEFAULT_X), key="g9_x")
     sy = st.selectbox("Métrica eixo Y:", metric_cols,
